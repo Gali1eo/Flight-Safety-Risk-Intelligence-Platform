@@ -62,6 +62,7 @@ python3 -m src.models.train_risk_model
 
 Local demo outputs:
 - `data/trusted/trusted_nasa_asrs_reports.csv`
+- `data/trusted/trusted_ntsb_aviation_investigations.csv`
 - `data/trusted/trusted_safety_events.csv`
 - `data/analytics/safety_risk_features.csv`
 - `data/analytics/model_training_dataset.csv`
@@ -78,6 +79,7 @@ The sample files intentionally include a few nulls, duplicates, and category var
 For the polished version of the project, CSV outputs can be upgraded back to Parquet once the environment and packaging story are finalized.
 The demo model treats numeric and categorical fields differently, excludes identifier and source-tracking columns from baseline training, and avoids using `severity_score` as an input because it defines the current proxy target.
 Run the main trusted-layer workflow with `python3 -m src.transform.build_trusted_layer`; when ASRS raw files are present in `data/raw/nasa_asrs`, it should also produce `data/trusted/trusted_nasa_asrs_reports.csv`.
+Run the standalone NTSB adapter with `python3 -m src.transform.build_ntsb_trusted_layer` to create `data/trusted/trusted_ntsb_aviation_investigations.csv` from raw files in `data/raw/ntsb_investigations`.
 
 ## Interview Talking Points
 - Why public proxies were chosen instead of confidential airline systems
