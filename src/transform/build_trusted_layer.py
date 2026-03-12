@@ -17,6 +17,10 @@ from src.transform.build_asrs_trusted_layer import (
     build_asrs_trusted_reports,
     persist_asrs_trusted_reports,
 )
+from src.transform.build_bts_trusted_layer import (
+    build_bts_trusted_operations,
+    persist_bts_trusted_operations,
+)
 from src.transform.build_ntsb_trusted_layer import (
     build_ntsb_trusted_investigations,
     persist_ntsb_trusted_investigations,
@@ -71,7 +75,7 @@ def persist_trusted_events(frame: pd.DataFrame) -> None:
 
 
 def main() -> None:
-    """Run the trusted-layer transformation pipeline for synthetic, ASRS, and NTSB sources."""
+    """Run the trusted-layer transformation pipeline for synthetic, ASRS, NTSB, and BTS sources."""
     LOGGER.info("Starting main trusted-layer workflow.")
 
     trusted_asrs = build_asrs_trusted_reports()
@@ -80,6 +84,10 @@ def main() -> None:
     LOGGER.info("Starting NTSB trusted-layer pipeline.")
     trusted_ntsb = build_ntsb_trusted_investigations()
     persist_ntsb_trusted_investigations(trusted_ntsb)
+
+    LOGGER.info("Starting BTS trusted-layer pipeline.")
+    trusted_bts = build_bts_trusted_operations()
+    persist_bts_trusted_operations(trusted_bts)
 
     trusted_events = build_trusted_events()
     persist_trusted_events(trusted_events)
