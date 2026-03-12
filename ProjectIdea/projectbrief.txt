@@ -1,0 +1,107 @@
+Project: Flight Safety Risk Intelligence Platform
+
+Goal:
+Build a portfolio-grade public-data prototype of an airline-style Safety Management System analytics platform aligned to a Flight Safety Data Science internship. The system should help analyze trends, support investigations, monitor fatigue-related signals, and communicate insights through Tableau dashboards using Python, SQL/Teradata-style modeling, R, AWS-style data layering, and machine learning.
+
+Core Idea:
+Create one integrated aviation safety intelligence workflow that combines:
+- operational / flight-operations proxy data
+- voluntary safety narratives
+- investigation outcomes
+- fatigue-related signals
+- safety-promotion / culture indicators
+
+Then transform those into:
+- trusted analytics tables
+- SQL marts
+- ML / NLP features
+- executive dashboards
+- interview-ready business insights
+
+Approved Data Sources / Proxies:
+- BTS On-Time / Delay data = operational / FOQA proxy
+- NASA ASRS = ASAP / fatigue / frontline safety narrative proxy
+- NTSB aviation investigation data = air safety investigation source
+- FAASTeam event data + synthetic internal training/survey dataset = safety-promotion / culture proxy
+
+Important Rules:
+- Use only public or clearly synthetic data
+- Never claim access to confidential airline FOQA, ASAP, or internal SMS data
+- Clearly label all proxy datasets in code, docs, and README
+- Keep everything interview-defensible and truthful
+- Prioritize safety, privacy, and least-privilege data design
+
+Target Tech Stack:
+- AWS-style raw / trusted / analytics layers
+- Python for ingestion, ETL, NLP, feature engineering, and ML
+- SQL / Teradata-style modeling for warehouse tables, marts, and analytical queries
+- R for trend analysis, time-series, and statistical validation
+- Tableau for dashboards and executive storytelling
+
+Architecture Flow:
+Sources → raw landing → trusted cleaned tables → analytics marts → NLP / ML / R layer → Tableau dashboards → portfolio story
+
+Main Deliverables:
+- ingestion scripts
+- cleaned trusted datasets
+- SQL schema and marts
+- NLP pipeline for safety narratives
+- ML models for fatigue/risk classification or scoring
+- R statistical analysis
+- Tableau-ready outputs
+- dashboards
+- README
+- architecture notes
+- resume bullets
+- interview story
+
+Project Roadmap:
+1. Demo version
+   - prove one complete end-to-end slice works
+   - ingestion + cleaning + SQL marts + one Tableau dashboard
+   - show operational + safety signal integration
+
+2. Stronger / Reacher version
+   - add NLP on ASRS narratives
+   - add fatigue-theme extraction
+   - add monthly risk scoring logic
+   - add R validation and more dashboards
+   - deepen analytics without rebuilding the project
+
+3. Polished showcase version
+   - refactor to production-style code
+   - improve logging, validation, and privacy framing
+   - create architecture diagram, polished README, KPI definitions, screenshots, resume bullets, and interview story
+
+Build Principle:
+Do not rebuild from scratch between phases.
+Use the same repo, same folder structure, same schema, same marts, and same Tableau data contract.
+Grow the project as:
+Demo → Stronger/Reacher → Polished
+
+Recommended Repo Structure:
+- /data/raw
+- /data/trusted
+- /data/analytics
+- /src/ingest
+- /src/transform
+- /src/features
+- /src/models
+- /sql
+- /notebooks
+- /docs
+- /dashboards
+
+Codex Workflow:
+- Use AGENTS.md for durable project rules
+- Use task-specific master prompts for the current assignment
+- Split work across:
+  - Agent 1: ingestion / ETL
+  - Agent 2: SQL schema / marts
+  - Agent 3: NLP / ML / R
+  - Agent 4: docs / README / dashboard storytelling
+- Use local for repo setup, dataset placement, testing, and validation
+- Use cloud / parallel threads for schema drafts, NLP scaffolding, docs, and alternate implementations
+
+Final Positioning:
+This project should be presented as a public-data aviation safety analytics platform that simulates how Flight Safety, Corporate Safety, and Flight Operations could integrate operational trends, investigation outcomes, fatigue-related signals, and safety-promotion indicators into one decision-support system using Python, SQL, R, AWS-style data architecture, machine learning, and Tableau.

@@ -1,0 +1,64 @@
+project:
+  name: flight-safety-risk-intelligence-platform
+  domain: aviation_safety
+  owner: yashyadav
+  environment: local
+  description: >
+    Portfolio-grade aviation safety analytics platform using public or synthetic
+    data sources only. Internal airline safety systems are represented only by
+    clearly labeled proxies and synthetic examples.
+
+datasets:
+  bts_on_time:
+    layer: raw
+    path: data/raw/bts_on_time
+    description: Public BTS delay and operational performance data used as an operational proxy.
+    grain: flight_leg
+    sensitive: false
+  nasa_asrs:
+    layer: raw
+    path: data/raw/nasa_asrs
+    description: Public voluntary safety reports used as a fatigue and narrative proxy.
+    grain: report
+    sensitive: true
+  ntsb_investigations:
+    layer: raw
+    path: data/raw/ntsb_investigations
+    description: Public aviation investigation records used for event severity context.
+    grain: investigation
+    sensitive: true
+  faasteam_events:
+    layer: raw
+    path: data/raw/faasteam_events
+    description: Public FAASTeam event data used as a safety-promotion proxy.
+    grain: event
+    sensitive: false
+  synthetic_safety_culture:
+    layer: raw
+    path: data/raw/synthetic_safety_culture
+    description: Synthetic training and safety culture records for demonstration only.
+    grain: employee_period
+    sensitive: true
+
+paths:
+  raw: data/raw
+  trusted: data/trusted
+  analytics: data/analytics
+  logs: logs
+  docs: docs
+  dashboards: dashboards
+
+outputs:
+  trusted_events_table: data/trusted/trusted_safety_events.parquet
+  feature_table: data/analytics/safety_risk_features.parquet
+  training_dataset: data/analytics/model_training_dataset.parquet
+  model_artifact: data/analytics/risk_model_summary.json
+
+metadata:
+  column_standard: snake_case
+  null_check_threshold: 0.2
+  duplicate_key_threshold: 0.0
+  pii_policy: Mask identifiers and avoid exposing narrative text in analytics outputs.
+  audience_guidance:
+    - operational leaders should see aggregate indicators, not raw narratives
+    - dashboards should follow least-privilege access assumptions
