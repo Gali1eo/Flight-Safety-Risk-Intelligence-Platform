@@ -23,3 +23,4 @@
 - Additional source-specific adapters can be added under `src/ingest`.
 - Statistical validation in R can be connected to `data/analytics`.
 - Tableau extracts can be generated directly from marts or analytics tables.
+- The local demo currently writes trusted and analytics outputs as CSV to reduce setup friction. Parquet can be restored later for the polished portfolio version once dependency management is finalized.

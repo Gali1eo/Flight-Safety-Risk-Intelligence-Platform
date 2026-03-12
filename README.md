@@ -38,13 +38,14 @@ SQL assets are split into:
 - `requirements.txt` defines the core Python stack
 - Starter Python modules provide an opinionated pipeline layout
 - Starter SQL files define trusted schemas and analytics marts
+- Local demo outputs are written as CSV to keep setup lightweight
 - `docs/architecture_overview.md` documents the system design and privacy posture
 
 ## How To Use
 1. Create a virtual environment and install `requirements.txt`.
 2. Generate local sample datasets with `python3 -m src.ingest.generate_sample_data`.
 3. Place approved public or synthetic source files into the `data/raw` layer when you are ready to replace the samples.
-4. Run ingestion, transformation, feature, and model modules in sequence.
+4. Run ingestion, transformation, feature, and model modules in sequence. For the local demo, trusted and analytics layer outputs are written as CSV files.
 5. Use the trusted and analytics outputs as inputs for SQL marts, notebooks, R analysis, or Tableau dashboards.
 
 ## Local Sample Data
@@ -59,6 +60,12 @@ python3 -m src.features.build_safety_features
 python3 -m src.models.train_risk_model
 ```
 
+Local demo outputs:
+- `data/trusted/trusted_safety_events.csv`
+- `data/analytics/safety_risk_features.csv`
+- `data/analytics/model_training_dataset.csv`
+- `data/analytics/risk_model_summary.json`
+
 Generated raw samples include:
 - `data/raw/operations/operations_sample.csv`
 - `data/raw/incidents/incidents_sample.csv`
@@ -67,6 +74,7 @@ Generated raw samples include:
 - `data/raw/synthetic_safety_culture/synthetic_safety_culture_monthly.csv`
 
 The sample files intentionally include a few nulls, duplicates, and category variations so validation behavior can be demonstrated during development and interviews.
+For the polished version of the project, CSV outputs can be upgraded back to Parquet once the environment and packaging story are finalized.
 
 ## Interview Talking Points
 - Why public proxies were chosen instead of confidential airline systems

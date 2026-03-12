@@ -50,7 +50,7 @@ def build_trusted_events() -> pd.DataFrame:
 
 
 def persist_trusted_events(frame: pd.DataFrame) -> None:
-    """Persist the trusted events table to the trusted layer."""
+    """Persist the trusted events table to the trusted layer as CSV for the local demo."""
     if frame.empty:
         LOGGER.warning("No trusted events were written because the dataframe is empty.")
         return
@@ -58,7 +58,7 @@ def persist_trusted_events(frame: pd.DataFrame) -> None:
     config = load_config()
     output_path = resolve_path(config["outputs"]["trusted_events_table"])
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    frame.to_parquet(output_path, index=False)
+    frame.to_csv(output_path, index=False)
     LOGGER.info("Wrote trusted events table to %s", output_path)
 
 

@@ -22,13 +22,13 @@ LOGGER = get_logger(__name__)
 
 
 def load_training_data() -> pd.DataFrame:
-    """Load the model-ready training dataset from the analytics layer."""
+    """Load the model-ready CSV training dataset from the analytics layer."""
     config = load_config()
     training_path = resolve_path(config["outputs"]["training_dataset"])
     if not training_path.exists():
         LOGGER.warning("Training dataset was not found at %s", training_path)
         return pd.DataFrame()
-    return pd.read_parquet(training_path)
+    return pd.read_csv(training_path)
 
 
 def build_training_target(frame: pd.DataFrame) -> pd.DataFrame:

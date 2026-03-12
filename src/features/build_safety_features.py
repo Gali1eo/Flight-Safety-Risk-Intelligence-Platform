@@ -16,13 +16,13 @@ FEATURE_REQUIRED_COLUMNS = ["event_id", "event_date", "source_system"]
 
 
 def load_trusted_events() -> pd.DataFrame:
-    """Load the trusted events table if it exists."""
+    """Load the trusted events CSV if it exists."""
     config = load_config()
     trusted_path = resolve_path(config["outputs"]["trusted_events_table"])
     if not trusted_path.exists():
         LOGGER.warning("Trusted events table was not found at %s", trusted_path)
         return pd.DataFrame()
-    return pd.read_parquet(trusted_path)
+    return pd.read_csv(trusted_path)
 
 
 def build_features(frame: pd.DataFrame) -> pd.DataFrame:
@@ -52,7 +52,7 @@ def build_features(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def persist_features(frame: pd.DataFrame) -> None:
-    """Persist analytics-layer features for downstream use."""
+    """Persist analytics-layer features as CSV for downstream local demo use."""
     if frame.empty:
         LOGGER.warning("No features were written because the dataframe is empty.")
         return
@@ -62,8 +62,8 @@ def persist_features(frame: pd.DataFrame) -> None:
     training_path = resolve_path(config["outputs"]["training_dataset"])
 
     feature_path.parent.mkdir(parents=True, exist_ok=True)
-    frame.to_parquet(feature_path, index=False)
-    frame.to_parquet(training_path, index=False)
+    frame.to_csv(feature_path, index=False)
+    frame.to_csv(training_path, index=False)
     LOGGER.info("Wrote feature table to %s", feature_path)
 
 
