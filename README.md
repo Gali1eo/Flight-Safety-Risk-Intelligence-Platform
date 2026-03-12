@@ -78,7 +78,7 @@ Generated raw samples include:
 The sample files intentionally include a few nulls, duplicates, and category variations so validation behavior can be demonstrated during development and interviews.
 For the polished version of the project, CSV outputs can be upgraded back to Parquet once the environment and packaging story are finalized.
 The demo model treats numeric and categorical fields differently, excludes identifier and source-tracking columns from baseline training, and avoids using `severity_score` as an input because it defines the current proxy target.
-Run the main trusted-layer workflow with `python3 -m src.transform.build_trusted_layer`; when ASRS raw files are present in `data/raw/nasa_asrs`, it should also produce `data/trusted/trusted_nasa_asrs_reports.csv`.
+Run the main trusted-layer workflow with `python3 -m src.transform.build_trusted_layer`; it now produces `data/trusted/trusted_safety_events.csv`, and when source files are present it also produces `data/trusted/trusted_nasa_asrs_reports.csv` and `data/trusted/trusted_ntsb_aviation_investigations.csv`.
 Run the standalone NTSB adapter with `python3 -m src.transform.build_ntsb_trusted_layer` to create `data/trusted/trusted_ntsb_aviation_investigations.csv` from raw files in `data/raw/ntsb_investigations`.
 
 ## Interview Talking Points
