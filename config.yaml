@@ -12,32 +12,140 @@ datasets:
   bts_on_time:
     layer: raw
     path: data/raw/bts_on_time
+    raw_file_path: data/raw/bts_on_time/bts_on_time_YYYY_MM.csv
     description: Public BTS delay and operational performance data used as an operational proxy.
+    purpose: Measure operational reliability, delay exposure, cancellation patterns, and airport-level disruption trends.
+    source_type: real_public_data
+    proxy_role: operational_proxy
+    expected_format: csv
     grain: flight_leg
+    key_columns:
+      - flight_date
+      - reporting_airline
+      - origin
+      - dest
+      - flight_number
+    join_strategy:
+      direct_join_supported: false
+      integration_approach: Aggregate by airport, carrier, route, and month before combining with other sources.
+      common_dimensions:
+        - event_month
+        - carrier_code
+        - origin_airport
+        - destination_airport
+    data_quality_risks:
+      - monthly files may arrive with schema drift or renamed columns
+      - cancellations and diversions can create partial operational records
+      - carrier and airport code changes can break longitudinal analysis
     sensitive: false
   nasa_asrs:
     layer: raw
     path: data/raw/nasa_asrs
+    raw_file_path: data/raw/nasa_asrs/asrs_reports_YYYY.csv
     description: Public voluntary safety reports used as a fatigue and narrative proxy.
+    purpose: Analyze self-reported safety themes, fatigue-related language, and narrative risk signals.
+    source_type: real_public_data
+    proxy_role: safety_report_and_fatigue_proxy
+    expected_format: csv
     grain: report
+    key_columns:
+      - report_id
+      - event_date
+      - location
+      - aircraft_operator
+    join_strategy:
+      direct_join_supported: false
+      integration_approach: Use thematic, airport-level, operator-level, or monthly aggregates rather than record-level joins.
+      common_dimensions:
+        - event_month
+        - operator_name_or_group
+        - airport_or_location
+    data_quality_risks:
+      - voluntary reporting introduces reporting bias and underreporting
+      - narrative text is unstructured and may contain inconsistent terminology
+      - operator and location fields can be incomplete or anonymized
     sensitive: true
   ntsb_investigations:
     layer: raw
     path: data/raw/ntsb_investigations
+    raw_file_path: data/raw/ntsb_investigations/ntsb_aviation_events_YYYY.csv
     description: Public aviation investigation records used for event severity context.
+    purpose: Provide investigation outcomes, severity context, and event taxonomy for safety trend analysis.
+    source_type: real_public_data
+    proxy_role: investigation_context
+    expected_format: csv
     grain: investigation
+    key_columns:
+      - ntsb_event_id
+      - event_date
+      - airport_code
+      - operator_name
+    join_strategy:
+      direct_join_supported: false
+      integration_approach: Aggregate by event month, airport, operator, and occurrence category for cross-source analysis.
+      common_dimensions:
+        - event_month
+        - airport_code
+        - operator_name_or_group
+        - occurrence_category
+    data_quality_risks:
+      - investigation closure timing can lag event occurrence by months or years
+      - airport and operator values may be missing for some records
+      - severity and occurrence coding may change across extracts
     sensitive: true
   faasteam_events:
     layer: raw
     path: data/raw/faasteam_events
+    raw_file_path: data/raw/faasteam_events/faasteam_events_YYYY.csv
     description: Public FAASTeam event data used as a safety-promotion proxy.
+    purpose: Measure safety outreach activity and use training event density as a safety-promotion proxy.
+    source_type: real_public_data
+    proxy_role: safety_promotion_proxy
+    expected_format: csv
     grain: event
+    key_columns:
+      - event_id
+      - event_date
+      - location
+      - topic
+    join_strategy:
+      direct_join_supported: false
+      integration_approach: Aggregate by geography and month, then compare outreach intensity with safety and operational indicators.
+      common_dimensions:
+        - event_month
+        - state_or_region
+        - airport_or_city
+    data_quality_risks:
+      - event location may not map cleanly to airport or carrier dimensions
+      - duplicate postings or schedule changes can inflate event counts
+      - topic labels may require manual standardization
     sensitive: false
   synthetic_safety_culture:
     layer: raw
     path: data/raw/synthetic_safety_culture
+    raw_file_path: data/raw/synthetic_safety_culture/synthetic_safety_culture_monthly.csv
     description: Synthetic training and safety culture records for demonstration only.
+    purpose: Represent internal training completion, engagement, and culture indicators that are not publicly available.
+    source_type: synthetic_data
+    proxy_role: internal_training_and_culture_proxy
+    expected_format: csv
     grain: employee_period
+    key_columns:
+      - employee_period_key
+      - period_start_date
+      - base_location
+      - fleet_group
+    join_strategy:
+      direct_join_supported: limited
+      integration_approach: Join only to synthetic or aggregated external dimensions such as location, fleet proxy, and month.
+      common_dimensions:
+        - period_month
+        - base_location
+        - fleet_group
+    data_quality_risks:
+      - synthetic generation logic can create unrealistic distributions if not calibrated
+      - surrogate keys may imply false join precision against external public datasets
+      - culture scores can be overinterpreted unless documented clearly as fictional
     sensitive: true
 
 paths:
@@ -59,6 +167,10 @@ metadata:
   null_check_threshold: 0.2
   duplicate_key_threshold: 0.0
   pii_policy: Mask identifiers and avoid exposing narrative text in analytics outputs.
+  integration_policy:
+    - treat BTS, ASRS, NTSB, and FAASTeam as complementary sources, not as a single record-level truth set
+    - default to joins at monthly, airport, route, carrier, operator-group, or regional level
+    - avoid claiming direct joins across public safety narratives and operational flight legs unless a defensible common key exists
   audience_guidance:
     - operational leaders should see aggregate indicators, not raw narratives
     - dashboards should follow least-privilege access assumptions

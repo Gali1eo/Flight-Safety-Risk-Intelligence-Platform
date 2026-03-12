@@ -42,9 +42,31 @@ SQL assets are split into:
 
 ## How To Use
 1. Create a virtual environment and install `requirements.txt`.
-2. Place approved public or synthetic source files into the `data/raw` layer.
-3. Run ingestion, transformation, feature, and model modules in sequence.
-4. Use the trusted and analytics outputs as inputs for SQL marts, notebooks, R analysis, or Tableau dashboards.
+2. Generate local sample datasets with `python3 -m src.ingest.generate_sample_data`.
+3. Place approved public or synthetic source files into the `data/raw` layer when you are ready to replace the samples.
+4. Run ingestion, transformation, feature, and model modules in sequence.
+5. Use the trusted and analytics outputs as inputs for SQL marts, notebooks, R analysis, or Tableau dashboards.
+
+## Local Sample Data
+The repo includes a small synthetic generator so the pipeline can run end to end without external downloads.
+
+Run:
+
+```bash
+python3 -m src.ingest.generate_sample_data
+python3 -m src.transform.build_trusted_layer
+python3 -m src.features.build_safety_features
+python3 -m src.models.train_risk_model
+```
+
+Generated raw samples include:
+- `data/raw/operations/operations_sample.csv`
+- `data/raw/incidents/incidents_sample.csv`
+- `data/raw/investigations/investigations_sample.csv`
+- `data/raw/safety_promotion/safety_promotion_sample.csv`
+- `data/raw/synthetic_safety_culture/synthetic_safety_culture_monthly.csv`
+
+The sample files intentionally include a few nulls, duplicates, and category variations so validation behavior can be demonstrated during development and interviews.
 
 ## Interview Talking Points
 - Why public proxies were chosen instead of confidential airline systems

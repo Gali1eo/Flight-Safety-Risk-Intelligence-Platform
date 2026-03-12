@@ -31,6 +31,16 @@ def build_trusted_events() -> pd.DataFrame:
     trusted_events = standardize_columns(raw_events)
     validate_required_columns(trusted_events, TRUSTED_REQUIRED_COLUMNS)
 
+    duplicate_count = int(trusted_events.duplicated(subset=["event_id"]).sum())
+    if duplicate_count:
+        LOGGER.warning(
+            "Dropping %s duplicate row(s) using event_id before trusted-layer publication.",
+            duplicate_count,
+        )
+        trusted_events = trusted_events.drop_duplicates(subset=["event_id"]).reset_index(
+            drop=True
+        )
+
     config = load_config()
     validate_null_threshold(trusted_events, config["metadata"]["null_check_threshold"])
     validate_no_duplicates(trusted_events, ["event_id"])
