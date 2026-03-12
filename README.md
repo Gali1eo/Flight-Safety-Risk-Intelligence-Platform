@@ -56,6 +56,7 @@ Run:
 ```bash
 python3 -m src.ingest.generate_sample_data
 python3 -m src.transform.build_trusted_layer
+python3 -m src.features.build_analytics_marts
 python3 -m src.features.build_safety_features
 python3 -m src.models.train_risk_model
 ```
@@ -65,6 +66,11 @@ Local demo outputs:
 - `data/trusted/trusted_nasa_asrs_reports.csv`
 - `data/trusted/trusted_ntsb_aviation_investigations.csv`
 - `data/trusted/trusted_safety_events.csv`
+- `data/analytics/monthly_risk_overview.csv`
+- `data/analytics/fatigue_theme_trends.csv`
+- `data/analytics/investigation_trends.csv`
+- `data/analytics/operational_disruption_summary.csv`
+- `data/analytics/safety_promotion_summary.csv`
 - `data/analytics/safety_risk_features.csv`
 - `data/analytics/model_training_dataset.csv`
 - `data/analytics/risk_model_summary.json`
@@ -80,6 +86,7 @@ The sample files intentionally include a few nulls, duplicates, and category var
 For the polished version of the project, CSV outputs can be upgraded back to Parquet once the environment and packaging story are finalized.
 The demo model treats numeric and categorical fields differently, excludes identifier and source-tracking columns from baseline training, and avoids using `severity_score` as an input because it defines the current proxy target.
 Run the main trusted-layer workflow with `python3 -m src.transform.build_trusted_layer`; it now produces `data/trusted/trusted_safety_events.csv`, and when source files are present it also produces `data/trusted/trusted_bts_on_time_operations.csv`, `data/trusted/trusted_nasa_asrs_reports.csv`, and `data/trusted/trusted_ntsb_aviation_investigations.csv`.
+Run the integrated analytics workflow with `python3 -m src.features.build_analytics_marts` to create Tableau-ready proxy-driven outputs in `data/analytics`.
 Run the standalone BTS adapter with `python3 -m src.transform.build_bts_trusted_layer` to create `data/trusted/trusted_bts_on_time_operations.csv` from raw files in `data/raw/bts_on_time`.
 Run the standalone NTSB adapter with `python3 -m src.transform.build_ntsb_trusted_layer` to create `data/trusted/trusted_ntsb_aviation_investigations.csv` from raw files in `data/raw/ntsb_investigations`.
 

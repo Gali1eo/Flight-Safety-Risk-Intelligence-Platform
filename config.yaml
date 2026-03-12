@@ -161,6 +161,11 @@ outputs:
   trusted_asrs_table: data/trusted/trusted_nasa_asrs_reports.csv
   trusted_ntsb_table: data/trusted/trusted_ntsb_aviation_investigations.csv
   trusted_bts_table: data/trusted/trusted_bts_on_time_operations.csv
+  monthly_risk_overview: data/analytics/monthly_risk_overview.csv
+  fatigue_theme_trends: data/analytics/fatigue_theme_trends.csv
+  investigation_trends: data/analytics/investigation_trends.csv
+  operational_disruption_summary: data/analytics/operational_disruption_summary.csv
+  safety_promotion_summary: data/analytics/safety_promotion_summary.csv
   feature_table: data/analytics/safety_risk_features.csv
   training_dataset: data/analytics/model_training_dataset.csv
   model_artifact: data/analytics/risk_model_summary.json
