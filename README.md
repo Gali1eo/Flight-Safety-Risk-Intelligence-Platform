@@ -55,12 +55,14 @@ Run:
 
 ```bash
 python3 -m src.ingest.generate_sample_data
+python3 -m src.transform.build_asrs_trusted_layer
 python3 -m src.transform.build_trusted_layer
 python3 -m src.features.build_safety_features
 python3 -m src.models.train_risk_model
 ```
 
 Local demo outputs:
+- `data/trusted/trusted_nasa_asrs_reports.csv`
 - `data/trusted/trusted_safety_events.csv`
 - `data/analytics/safety_risk_features.csv`
 - `data/analytics/model_training_dataset.csv`
@@ -76,6 +78,7 @@ Generated raw samples include:
 The sample files intentionally include a few nulls, duplicates, and category variations so validation behavior can be demonstrated during development and interviews.
 For the polished version of the project, CSV outputs can be upgraded back to Parquet once the environment and packaging story are finalized.
 The demo model treats numeric and categorical fields differently, excludes identifier and source-tracking columns from baseline training, and avoids using `severity_score` as an input because it defines the current proxy target.
+The ASRS adapter can be run independently with `python3 -m src.transform.build_asrs_trusted_layer` to create a trusted public safety-report table from files in `data/raw/nasa_asrs`.
 
 ## Interview Talking Points
 - Why public proxies were chosen instead of confidential airline systems

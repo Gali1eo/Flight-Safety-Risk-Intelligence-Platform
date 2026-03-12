@@ -158,6 +158,7 @@ paths:
 
 outputs:
   trusted_events_table: data/trusted/trusted_safety_events.csv
+  trusted_asrs_table: data/trusted/trusted_nasa_asrs_reports.csv
   feature_table: data/analytics/safety_risk_features.csv
   training_dataset: data/analytics/model_training_dataset.csv
   model_artifact: data/analytics/risk_model_summary.json
