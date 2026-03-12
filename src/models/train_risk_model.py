@@ -20,6 +20,16 @@ from src.common.logging_utils import get_logger
 
 LOGGER = get_logger(__name__)
 
+EXCLUDED_FEATURE_COLUMNS = {
+    "event_id",
+    "employee_period_key",
+    "event_date",
+    "period_start_date",
+    "source_system",
+    "severity_score",
+    "elevated_risk_flag",
+}
+
 
 def load_training_data() -> pd.DataFrame:
     """Load the model-ready CSV training dataset from the analytics layer."""
@@ -43,6 +53,78 @@ def build_training_target(frame: pd.DataFrame) -> pd.DataFrame:
     return training_frame
 
 
+def select_model_features(frame: pd.DataFrame) -> tuple[pd.DataFrame, list[str], list[str]]:
+    """Select interview-defensible features and split them by dtype."""
+    candidate_columns = [
+        column for column in frame.columns if column not in EXCLUDED_FEATURE_COLUMNS
+    ]
+    if not candidate_columns:
+        raise ValueError("No candidate feature columns were found for model training.")
+
+    feature_frame = frame[candidate_columns].copy()
+
+    low_variance_columns = [
+        column for column in feature_frame.columns
+        if feature_frame[column].nunique(dropna=True) <= 1
+    ]
+    if low_variance_columns:
+        LOGGER.info(
+            "Dropping low-variance feature columns: %s",
+            ", ".join(sorted(low_variance_columns)),
+        )
+        feature_frame = feature_frame.drop(columns=low_variance_columns)
+
+    if feature_frame.empty:
+        raise ValueError("No usable feature columns remain after filtering.")
+
+    numeric_features = feature_frame.select_dtypes(include=["number", "bool"]).columns.tolist()
+    categorical_features = [
+        column for column in feature_frame.columns if column not in numeric_features
+    ]
+
+    LOGGER.info(
+        "Selected %s numeric and %s categorical feature columns",
+        len(numeric_features),
+        len(categorical_features),
+    )
+    return feature_frame, numeric_features, categorical_features
+
+
+def build_preprocessor(
+    numeric_features: list[str], categorical_features: list[str]
+) -> ColumnTransformer:
+    """Build the mixed-type preprocessing stack used by the demo model."""
+    transformers: list[tuple[str, Pipeline, list[str]]] = []
+
+    if numeric_features:
+        transformers.append(
+            (
+                "numeric",
+                Pipeline(steps=[("imputer", SimpleImputer(strategy="median"))]),
+                numeric_features,
+            )
+        )
+
+    if categorical_features:
+        transformers.append(
+            (
+                "categorical",
+                Pipeline(
+                    steps=[
+                        ("imputer", SimpleImputer(strategy="most_frequent")),
+                        ("encoder", OneHotEncoder(handle_unknown="ignore")),
+                    ]
+                ),
+                categorical_features,
+            )
+        )
+
+    if not transformers:
+        raise ValueError("No preprocessing transformers could be constructed.")
+
+    return ColumnTransformer(transformers=transformers)
+
+
 def train_model(frame: pd.DataFrame) -> dict[str, Any]:
     """Train a lightweight baseline model and return summary metrics."""
     if frame.empty:
@@ -58,15 +140,7 @@ def train_model(frame: pd.DataFrame) -> dict[str, Any]:
         LOGGER.warning("Model training skipped because the target has only one class.")
         return {"status": "skipped", "reason": "single_target_class", "row_count": int(len(training_frame))}
 
-    feature_columns = [
-        column
-        for column in ["event_year", "event_month", "source_system", "is_fatigue_proxy"]
-        if column in training_frame.columns
-    ]
-    if not feature_columns:
-        raise ValueError("No valid feature columns were found for model training.")
-
-    X = training_frame[feature_columns]
+    X, numeric_features, categorical_features = select_model_features(training_frame)
     y = training_frame["elevated_risk_flag"]
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -77,32 +151,7 @@ def train_model(frame: pd.DataFrame) -> dict[str, Any]:
         stratify=y if y.nunique() > 1 else None,
     )
 
-    categorical_features = [
-        column for column in X_train.columns if X_train[column].dtype == "object"
-    ]
-    numeric_features = [
-        column for column in X_train.columns if column not in categorical_features
-    ]
-
-    preprocessor = ColumnTransformer(
-        transformers=[
-            (
-                "numeric",
-                Pipeline(steps=[("imputer", SimpleImputer(strategy="median"))]),
-                numeric_features,
-            ),
-            (
-                "categorical",
-                Pipeline(
-                    steps=[
-                        ("imputer", SimpleImputer(strategy="most_frequent")),
-                        ("encoder", OneHotEncoder(handle_unknown="ignore")),
-                    ]
-                ),
-                categorical_features,
-            ),
-        ]
-    )
+    preprocessor = build_preprocessor(numeric_features, categorical_features)
 
     model = Pipeline(
         steps=[
@@ -118,9 +167,12 @@ def train_model(frame: pd.DataFrame) -> dict[str, Any]:
         "status": "trained",
         "model_type": "logistic_regression_baseline",
         "row_count": int(len(training_frame)),
-        "feature_columns": feature_columns,
+        "feature_columns": X.columns.tolist(),
+        "numeric_feature_columns": numeric_features,
+        "categorical_feature_columns": categorical_features,
         "accuracy": round(float(accuracy), 4),
         "target_definition": "severity_score > 0 as a proxy elevated-risk label",
+        "feature_assumptions": "Identifier, date, source-system, and direct target-leakage columns are excluded from baseline training.",
     }
     LOGGER.info("Trained baseline model with accuracy %.4f", accuracy)
     return summary

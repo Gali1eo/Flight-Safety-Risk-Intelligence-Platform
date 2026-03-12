@@ -75,6 +75,7 @@ Generated raw samples include:
 
 The sample files intentionally include a few nulls, duplicates, and category variations so validation behavior can be demonstrated during development and interviews.
 For the polished version of the project, CSV outputs can be upgraded back to Parquet once the environment and packaging story are finalized.
+The demo model treats numeric and categorical fields differently, excludes identifier and source-tracking columns from baseline training, and avoids using `severity_score` as an input because it defines the current proxy target.
 
 ## Interview Talking Points
 - Why public proxies were chosen instead of confidential airline systems
