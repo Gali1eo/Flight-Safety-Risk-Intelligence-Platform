@@ -13,6 +13,10 @@ from src.common.validation import (
     validate_required_columns,
 )
 from src.ingest.ingest_datasets import load_dataset
+from src.transform.build_asrs_trusted_layer import (
+    build_asrs_trusted_reports,
+    persist_asrs_trusted_reports,
+)
 
 
 LOGGER = get_logger(__name__)
@@ -63,9 +67,16 @@ def persist_trusted_events(frame: pd.DataFrame) -> None:
 
 
 def main() -> None:
-    """Run the trusted-layer transformation pipeline."""
+    """Run the trusted-layer transformation pipeline for synthetic and ASRS sources."""
+    LOGGER.info("Starting main trusted-layer workflow.")
+
+    trusted_asrs = build_asrs_trusted_reports()
+    persist_asrs_trusted_reports(trusted_asrs)
+
     trusted_events = build_trusted_events()
     persist_trusted_events(trusted_events)
+
+    LOGGER.info("Completed main trusted-layer workflow.")
 
 
 if __name__ == "__main__":

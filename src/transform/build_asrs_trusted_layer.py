@@ -27,8 +27,13 @@ def load_asrs_raw() -> pd.DataFrame:
     """Load all raw ASRS CSV files from the configured raw folder."""
     source_files = discover_source_files("nasa_asrs")
     if not source_files:
-        LOGGER.warning("No raw ASRS files were found.")
+        LOGGER.warning("No raw ASRS files were found in data/raw/nasa_asrs.")
         return pd.DataFrame()
+
+    LOGGER.info(
+        "ASRS files discovered: %s",
+        ", ".join(file_path.name for file_path in source_files),
+    )
 
     frames = []
     for file_path in source_files:
@@ -37,46 +42,35 @@ def load_asrs_raw() -> pd.DataFrame:
         frames.append(frame)
 
     combined = pd.concat(frames, ignore_index=True)
-    LOGGER.info("Loaded %s ASRS row(s) from %s file(s)", len(combined), len(source_files))
+    LOGGER.info("ASRS rows loaded: %s", len(combined))
     return combined
 
 
-def validate_asrs_required_nulls(frame: pd.DataFrame) -> None:
-    """Validate that core ASRS fields are populated."""
-    null_summary = {
-        column: int(frame[column].isna().sum())
-        for column in ASRS_NULL_CHECK_COLUMNS
-        if column in frame.columns
-    }
-    failing = {column: count for column, count in null_summary.items() if count > 0}
-    if failing:
-        raise ValueError(f"Core ASRS fields contain nulls: {failing}")
+def drop_asrs_rows_with_required_nulls(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """Drop rows missing required ASRS values and report the count."""
+    required_mask = frame[ASRS_NULL_CHECK_COLUMNS].notna().all(axis=1)
+    dropped_rows = int((~required_mask).sum())
+    cleaned = frame.loc[required_mask].reset_index(drop=True)
+    return cleaned, dropped_rows
 
 
-def coerce_and_validate_dates(frame: pd.DataFrame) -> pd.DataFrame:
-    """Parse event dates and raise if invalid values are found."""
+def drop_asrs_rows_with_invalid_dates(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """Drop rows with invalid event dates and standardize valid values."""
     trusted = frame.copy()
-    trusted["event_date"] = pd.to_datetime(trusted["event_date"], errors="coerce")
+    parsed_dates = pd.to_datetime(trusted["event_date"], errors="coerce")
+    invalid_date_rows = int(parsed_dates.isna().sum())
 
-    invalid_date_rows = trusted["event_date"].isna().sum()
-    if invalid_date_rows:
-        raise ValueError(f"Found {int(invalid_date_rows)} ASRS row(s) with invalid event_date values")
-
-    trusted["event_date"] = trusted["event_date"].dt.date.astype(str)
-    return trusted
+    trusted = trusted.loc[parsed_dates.notna()].copy()
+    trusted["event_date"] = parsed_dates.loc[parsed_dates.notna()].dt.date.astype(str)
+    trusted = trusted.reset_index(drop=True)
+    return trusted, invalid_date_rows
 
 
-def deduplicate_asrs_reports(frame: pd.DataFrame) -> pd.DataFrame:
+def deduplicate_asrs_reports(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     """Drop duplicate ASRS reports using the report identifier."""
     duplicate_count = int(frame.duplicated(subset=ASRS_DUPLICATE_KEYS).sum())
-    if duplicate_count:
-        LOGGER.warning(
-            "Dropping %s duplicate ASRS row(s) using keys %s.",
-            duplicate_count,
-            ASRS_DUPLICATE_KEYS,
-        )
-        return frame.drop_duplicates(subset=ASRS_DUPLICATE_KEYS).reset_index(drop=True)
-    return frame
+    deduplicated = frame.drop_duplicates(subset=ASRS_DUPLICATE_KEYS).reset_index(drop=True)
+    return deduplicated, duplicate_count
 
 
 def build_asrs_trusted_reports() -> pd.DataFrame:
@@ -87,9 +81,19 @@ def build_asrs_trusted_reports() -> pd.DataFrame:
 
     trusted_asrs = standardize_columns(raw_asrs)
     validate_required_columns(trusted_asrs, ASRS_REQUIRED_COLUMNS)
-    trusted_asrs = deduplicate_asrs_reports(trusted_asrs)
-    trusted_asrs = coerce_and_validate_dates(trusted_asrs)
-    validate_asrs_required_nulls(trusted_asrs)
+
+    trusted_asrs, duplicate_rows_dropped = deduplicate_asrs_reports(trusted_asrs)
+    LOGGER.info("ASRS rows dropped for duplicates: %s", duplicate_rows_dropped)
+
+    trusted_asrs, null_rows_dropped = drop_asrs_rows_with_required_nulls(trusted_asrs)
+    LOGGER.info("ASRS rows dropped for required nulls: %s", null_rows_dropped)
+
+    trusted_asrs, invalid_date_rows_dropped = drop_asrs_rows_with_invalid_dates(trusted_asrs)
+    LOGGER.info("ASRS rows dropped for invalid dates: %s", invalid_date_rows_dropped)
+
+    if trusted_asrs.empty:
+        LOGGER.warning("All ASRS rows were dropped during validation; no trusted ASRS output will be produced.")
+        return trusted_asrs
 
     trusted_asrs["location"] = trusted_asrs["location"].fillna("UNKNOWN")
     trusted_asrs["aircraft_operator"] = trusted_asrs["aircraft_operator"].fillna(
@@ -118,7 +122,7 @@ def persist_asrs_trusted_reports(frame: pd.DataFrame) -> None:
     output_path = resolve_path(config["outputs"]["trusted_asrs_table"])
     output_path.parent.mkdir(parents=True, exist_ok=True)
     frame.to_csv(output_path, index=False)
-    LOGGER.info("Wrote trusted ASRS reports to %s", output_path)
+    LOGGER.info("ASRS trusted output path written: %s", output_path)
 
 
 def main() -> None:
