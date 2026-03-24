@@ -1,50 +1,25 @@
 # Restart Checkpoint
 
 Current stage:
-- Synthetic demo complete
-- NASA ASRS adapter complete
-- NTSB adapter complete
-- BTS adapter complete
-- Main trusted workflow integrated
-- Analytics marts complete
-- Tableau dashboard plan complete
+- Tableau work paused
+- Switching from tiny sample data to real public-data build
+- Requested scope: last 15 months ending 2026-02-28
+- Truthful integrated scope adjusted because BTS currently ends at 2025-12
 
-Current trusted outputs:
-- data/trusted/trusted_safety_events.csv
-- data/trusted/trusted_nasa_asrs_reports.csv
-- data/trusted/trusted_ntsb_aviation_investigations.csv
-- data/trusted/trusted_bts_on_time_operations.csv
+Project windows:
+- Integrated cross-source dashboard window: 2025-01-01 to 2025-12-31
+- Source-native supplemental window: 2024-12-01 to 2026-02-28 where available
 
-Current analytics outputs:
-- data/analytics/monthly_risk_overview.csv
-- data/analytics/fatigue_theme_trends.csv
-- data/analytics/investigation_trends.csv
-- data/analytics/operational_disruption_summary.csv
-- data/analytics/safety_promotion_summary.csv
-
-Immediate next step:
-- Build Tableau Dashboard 1: Monthly Risk Overview
-
-Dashboard 1 build sequence:
-- Connect Tableau to `data/analytics/monthly_risk_overview.csv`
-- Review `docs/monthly_risk_overview_build_guide.md`
-- Build KPI header worksheet
-- Build monthly trend worksheet
-- Build airport heatmap worksheet
-- Build airport comparison scatter worksheet
-- Build synthetic culture context worksheet
-- Assemble the final dashboard with explicit proxy caveat text
-
-After that:
-- Dashboard 2: Operational Disruption Summary
-- Dashboard 3: Fatigue Theme Trends
-- Dashboard 4: Investigation Trends
-- Dashboard 5: Safety Promotion Summary
-- NLP / fatigue extraction
-- R validation
-- final portfolio polish
+Next build order:
+1. Load real BTS monthly files for Jan-Dec 2025
+2. Load real NASA ASRS exports for Dec 2024-Feb 2026 if query results support it
+3. Load real NTSB aviation investigation data for Dec 2024-Feb 2026
+4. Load real FAASTeam past events for the last 15 months
+5. Rebuild trusted layer
+6. Rebuild analytics marts
+7. Rebuild Dashboard 1 in Tableau using real data
 
 Important constraints:
-- Use only public or synthetic data
-- Never imply access to FOQA, ASAP, or internal SMS data
-- Keep proxy caveats explicit in dashboards and docs
+- Public or synthetic data only
+- No FOQA, ASAP, or internal SMS claims
+- Aggregate-only joins

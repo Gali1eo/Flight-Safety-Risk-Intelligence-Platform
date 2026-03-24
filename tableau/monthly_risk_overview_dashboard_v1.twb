@@ -1,0 +1,396 @@
+<?xml version='1.0' encoding='utf-8' ?>
+
+<!-- build 20261.26.0226.1626                               -->
+<workbook original-version='18.1' source-build='2026.1.0 (20261.26.0226.1626)' source-platform='mac' version='18.1' xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <document-format-change-manifest>
+    <AnimationOnByDefault />
+    <MarkAnimation />
+    <ObjectModelEncapsulateLegacy />
+    <ObjectModelTableType />
+    <SchemaViewerObjectModel />
+    <SheetIdentifierTracking />
+    <WindowsPersistSimpleIdentifiers />
+  </document-format-change-manifest>
+  <preferences>
+    <preference name='ui.encoding.shelf.height' value='24' />
+    <preference name='ui.shelf.height' value='26' />
+  </preferences>
+  <datasources>
+    <datasource caption='monthly_risk_overview' inline='true' name='federated.0cd6f8j16fterp11xyt0r12sfozf' version='18.1'>
+      <connection class='federated'>
+        <named-connections>
+          <named-connection caption='monthly_risk_overview' name='textscan.049l0ud10k6ijr1h7juo80ko1a39'>
+            <connection class='textscan' cleaning='yes' compat='no' csvFile='/Users/yashyadav/Documents/Delta Project/data/analytics/monthly_risk_overview.csv' dataRefreshTime='' directory='/Users/yashyadav/Documents/Delta Project/data/analytics' filename='/var/folders/44/6ks93p0j517fm49t23mv6qjc0000gn/T/tableau-temp/1dm0p8h1od2d0z19ge9240w3k0jw/monthly_risk_overview.csv.xlsx' interpretationMode='8' password='' server='' validate='no' />
+          </named-connection>
+        </named-connections>
+        <relation connection='textscan.049l0ud10k6ijr1h7juo80ko1a39' name='monthly_risk_overview.csv' table='[/Users/yashyadav/Documents/Delta Project/data/analytics/monthly_risk_overview#csv]' type='table'>
+          <columns character-set='UTF-8' gridOrigin='A1:Q10:no:A1:Q10:1' header='yes' locale='en_US' separator=','>
+            <column datatype='date' date-parse-format='yyyy-MM' name='report_month' ordinal='0' />
+            <column datatype='string' name='airport' ordinal='1' />
+            <column datatype='string' name='region' ordinal='2' />
+            <column datatype='real' name='operational_flight_legs' ordinal='3' />
+            <column datatype='real' name='cancelled_flights' ordinal='4' />
+            <column datatype='real' name='diverted_flights' ordinal='5' />
+            <column datatype='real' name='avg_departure_delay_minutes' ordinal='6' />
+            <column datatype='real' name='avg_arrival_delay_minutes' ordinal='7' />
+            <column datatype='real' name='asrs_report_count' ordinal='8' />
+            <column datatype='real' name='fatigue_related_report_count' ordinal='9' />
+            <column datatype='real' name='ntsb_investigation_count' ordinal='10' />
+            <column datatype='real' name='serious_or_higher_investigation_count' ordinal='11' />
+            <column datatype='real' name='avg_training_completion_rate' ordinal='12' />
+            <column datatype='real' name='avg_safety_engagement_score' ordinal='13' />
+            <column datatype='real' name='fatigue_training_completion_rate' ordinal='14' />
+            <column datatype='real' name='synthetic_elevated_risk_count' ordinal='15' />
+            <column datatype='string' name='data_basis' ordinal='16' />
+          </columns>
+        </relation>
+        <metadata-records>
+          <metadata-record class='capability'>
+            <remote-name />
+            <remote-type>0</remote-type>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias />
+            <aggregation>Count</aggregation>
+            <contains-null>true</contains-null>
+            <attributes>
+              <attribute datatype='string' name='character-set'>&quot;UTF-8&quot;</attribute>
+              <attribute datatype='string' name='collation'>&quot;en_US&quot;</attribute>
+              <attribute datatype='string' name='field-delimiter'>&quot;,&quot;</attribute>
+              <attribute datatype='string' name='gridOrigin'>&quot;A1:Q10:no:A1:Q10:1&quot;</attribute>
+              <attribute datatype='string' name='header-row'>&quot;true&quot;</attribute>
+              <attribute datatype='string' name='locale'>&quot;en_US&quot;</attribute>
+              <attribute datatype='string' name='single-char'>&quot;&quot;</attribute>
+            </attributes>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>report_month</remote-name>
+            <remote-type>7</remote-type>
+            <local-name>[report_month]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>report_month</remote-alias>
+            <ordinal>0</ordinal>
+            <local-type>date</local-type>
+            <aggregation>Year</aggregation>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='LEN_RUS' />
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>airport</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[airport]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>airport</remote-alias>
+            <ordinal>1</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <scale>1</scale>
+            <width>1073741823</width>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='LEN_RUS' />
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>region</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[region]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>region</remote-alias>
+            <ordinal>2</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <scale>1</scale>
+            <width>1073741823</width>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='LEN_RUS' />
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>operational_flight_legs</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[operational_flight_legs]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>operational_flight_legs</remote-alias>
+            <ordinal>3</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>cancelled_flights</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[cancelled_flights]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>cancelled_flights</remote-alias>
+            <ordinal>4</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>diverted_flights</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[diverted_flights]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>diverted_flights</remote-alias>
+            <ordinal>5</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>avg_departure_delay_minutes</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[avg_departure_delay_minutes]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>avg_departure_delay_minutes</remote-alias>
+            <ordinal>6</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>avg_arrival_delay_minutes</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[avg_arrival_delay_minutes]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>avg_arrival_delay_minutes</remote-alias>
+            <ordinal>7</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>asrs_report_count</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[asrs_report_count]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>asrs_report_count</remote-alias>
+            <ordinal>8</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>fatigue_related_report_count</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[fatigue_related_report_count]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>fatigue_related_report_count</remote-alias>
+            <ordinal>9</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>ntsb_investigation_count</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[ntsb_investigation_count]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>ntsb_investigation_count</remote-alias>
+            <ordinal>10</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>serious_or_higher_investigation_count</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[serious_or_higher_investigation_count]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>serious_or_higher_investigation_count</remote-alias>
+            <ordinal>11</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>avg_training_completion_rate</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[avg_training_completion_rate]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>avg_training_completion_rate</remote-alias>
+            <ordinal>12</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>avg_safety_engagement_score</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[avg_safety_engagement_score]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>avg_safety_engagement_score</remote-alias>
+            <ordinal>13</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>fatigue_training_completion_rate</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[fatigue_training_completion_rate]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>fatigue_training_completion_rate</remote-alias>
+            <ordinal>14</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>synthetic_elevated_risk_count</remote-name>
+            <remote-type>5</remote-type>
+            <local-name>[synthetic_elevated_risk_count]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>synthetic_elevated_risk_count</remote-alias>
+            <ordinal>15</ordinal>
+            <local-type>real</local-type>
+            <aggregation>Sum</aggregation>
+            <contains-null>true</contains-null>
+          </metadata-record>
+          <metadata-record class='column'>
+            <remote-name>data_basis</remote-name>
+            <remote-type>129</remote-type>
+            <local-name>[data_basis]</local-name>
+            <parent-name>[monthly_risk_overview.csv]</parent-name>
+            <remote-alias>data_basis</remote-alias>
+            <ordinal>16</ordinal>
+            <local-type>string</local-type>
+            <aggregation>Count</aggregation>
+            <scale>1</scale>
+            <width>1073741823</width>
+            <contains-null>true</contains-null>
+            <collation flag='0' name='LEN_RUS' />
+          </metadata-record>
+        </metadata-records>
+      </connection>
+      <aliases enabled='yes' />
+      <column caption='monthly_risk_overview.csv' datatype='table' name='[__tableau_internal_object_id__].[monthly_risk_overview.csv_CE1A88FC4FC44EFCA5EF287C42818482]' role='measure' type='quantitative' />
+      <column caption='Airport' datatype='string' name='[airport]' role='dimension' type='nominal' />
+      <column caption='Asrs Report Count' datatype='real' name='[asrs_report_count]' role='measure' type='quantitative' />
+      <column caption='Avg Arrival Delay Minutes' datatype='real' name='[avg_arrival_delay_minutes]' role='measure' type='quantitative' />
+      <column caption='Avg Departure Delay Minutes' datatype='real' name='[avg_departure_delay_minutes]' role='measure' type='quantitative' />
+      <column caption='Avg Safety Engagement Score' datatype='real' name='[avg_safety_engagement_score]' role='measure' type='quantitative' />
+      <column caption='Avg Training Completion Rate' datatype='real' name='[avg_training_completion_rate]' role='measure' type='quantitative' />
+      <column caption='Cancelled Flights' datatype='real' name='[cancelled_flights]' role='measure' type='quantitative' />
+      <column caption='Data Basis' datatype='string' name='[data_basis]' role='dimension' type='nominal' />
+      <column caption='Diverted Flights' datatype='real' name='[diverted_flights]' role='measure' type='quantitative' />
+      <column caption='Fatigue Related Report Count' datatype='real' name='[fatigue_related_report_count]' role='measure' type='quantitative' />
+      <column caption='Fatigue Training Completion Rate' datatype='real' name='[fatigue_training_completion_rate]' role='measure' type='quantitative' />
+      <column caption='Ntsb Investigation Count' datatype='real' name='[ntsb_investigation_count]' role='measure' type='quantitative' />
+      <column caption='Operational Flight Legs' datatype='real' name='[operational_flight_legs]' role='measure' type='quantitative' />
+      <column caption='Region' datatype='string' name='[region]' role='dimension' type='nominal' />
+      <column caption='Report Month' datatype='date' name='[report_month]' role='dimension' type='ordinal' />
+      <column caption='Serious Or Higher Investigation Count' datatype='real' name='[serious_or_higher_investigation_count]' role='measure' type='quantitative' />
+      <column caption='Synthetic Elevated Risk Count' datatype='real' name='[synthetic_elevated_risk_count]' role='measure' type='quantitative' />
+      <layout dim-ordering='alphabetic' measure-ordering='alphabetic' show-structure='true' />
+      <semantic-values>
+        <semantic-value key='[Country].[Name]' value='&quot;United States&quot;' />
+      </semantic-values>
+      <object-graph>
+        <objects>
+          <object caption='monthly_risk_overview.csv' id='monthly_risk_overview.csv_CE1A88FC4FC44EFCA5EF287C42818482'>
+            <properties context=''>
+              <relation connection='textscan.049l0ud10k6ijr1h7juo80ko1a39' name='monthly_risk_overview.csv' table='[/Users/yashyadav/Documents/Delta Project/data/analytics/monthly_risk_overview#csv]' type='table'>
+                <columns character-set='UTF-8' gridOrigin='A1:Q10:no:A1:Q10:1' header='yes' locale='en_US' separator=','>
+                  <column datatype='date' date-parse-format='yyyy-MM' name='report_month' ordinal='0' />
+                  <column datatype='string' name='airport' ordinal='1' />
+                  <column datatype='string' name='region' ordinal='2' />
+                  <column datatype='real' name='operational_flight_legs' ordinal='3' />
+                  <column datatype='real' name='cancelled_flights' ordinal='4' />
+                  <column datatype='real' name='diverted_flights' ordinal='5' />
+                  <column datatype='real' name='avg_departure_delay_minutes' ordinal='6' />
+                  <column datatype='real' name='avg_arrival_delay_minutes' ordinal='7' />
+                  <column datatype='real' name='asrs_report_count' ordinal='8' />
+                  <column datatype='real' name='fatigue_related_report_count' ordinal='9' />
+                  <column datatype='real' name='ntsb_investigation_count' ordinal='10' />
+                  <column datatype='real' name='serious_or_higher_investigation_count' ordinal='11' />
+                  <column datatype='real' name='avg_training_completion_rate' ordinal='12' />
+                  <column datatype='real' name='avg_safety_engagement_score' ordinal='13' />
+                  <column datatype='real' name='fatigue_training_completion_rate' ordinal='14' />
+                  <column datatype='real' name='synthetic_elevated_risk_count' ordinal='15' />
+                  <column datatype='string' name='data_basis' ordinal='16' />
+                </columns>
+              </relation>
+            </properties>
+          </object>
+        </objects>
+      </object-graph>
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name='Sheet 1'>
+      <table>
+        <view>
+          <datasources />
+          <aggregation value='true' />
+        </view>
+        <style />
+        <panes>
+          <pane selection-relaxation-option='selection-relaxation-allow'>
+            <view>
+              <breakdown value='auto' />
+            </view>
+            <mark class='Automatic' />
+          </pane>
+        </panes>
+        <rows />
+        <cols />
+      </table>
+      <simple-id uuid='{D9A6B797-20DE-4AD0-AE94-255B55F4DCDF}' />
+    </worksheet>
+  </worksheets>
+  <windows source-height='30'>
+    <window class='worksheet' maximized='true' name='Sheet 1'>
+      <cards>
+        <edge name='left'>
+          <strip size='160'>
+            <card type='pages' />
+            <card type='filters' />
+            <card type='marks' />
+          </strip>
+        </edge>
+        <edge name='top'>
+          <strip size='2147483647'>
+            <card type='columns' />
+          </strip>
+          <strip size='2147483647'>
+            <card type='rows' />
+          </strip>
+          <strip size='31'>
+            <card type='title' />
+          </strip>
+        </edge>
+      </cards>
+      <simple-id uuid='{10A052DC-8CFB-4CBD-91E7-62F2ECEBAADF}' />
+    </window>
+  </windows>
+  <thumbnails>
+    <thumbnail height='384' name='Sheet 1' width='384'>
+      iVBORw0KGgoAAAANSUhEUgAAAYAAAAGACAYAAACkx7W/AAAACXBIWXMAAA7DAAAOwwHHb6hk
+      AAAFXUlEQVR4nO3VMQEAIAzAMMC/5yFjRxMF/XpnZg4AOW87AIAdBgAQZQAAUQYAEGUAAFEG
+      ABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAA
+      UQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBl
+      AABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYA
+      EGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABR
+      BgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUA
+      AFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQ
+      ZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEG
+      ABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAA
+      UQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBl
+      AABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYA
+      EGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABR
+      BgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUA
+      AFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQ
+      ZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEG
+      ABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAA
+      UQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBl
+      AABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYA
+      EGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABR
+      BgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUA
+      AFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQ
+      ZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEG
+      ABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAA
+      UQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBl
+      AABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEGABBlAABRBgAQZQAAUQYA
+      EGUAAFEGABBlAABRBgAQZQAAUQYAEGUAAFEfFxoG/IiMv0YAAAAASUVORK5CYII=
+    </thumbnail>
+  </thumbnails>
+</workbook>
