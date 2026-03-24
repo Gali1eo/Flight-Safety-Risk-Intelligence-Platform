@@ -9,6 +9,18 @@ This document defines how each approved dataset contributes to the project, wher
 - Synthetic internal training and safety culture data exists only to demonstrate how internal indicators could be modeled in a privacy-safe portfolio project.
 - Any dashboard or model output should state clearly when a metric comes from a proxy rather than a direct safety system of record.
 
+## Real-Data Window Design
+- Requested portfolio horizon: `2024-12-01` through `2026-02-28`
+- Planned integrated cross-source dashboard window: calendar year `2025`
+- Current verified executable integrated window as of `2026-03-24`: `2025-01-01` through `2025-11-30`
+- Source-native supplemental window: `2024-12-01` through `2026-02-28` where each source supports it
+
+Why the integrated window is capped:
+- The public BTS Reporting Carrier On-Time dataset is the operational backbone for the integrated cross-source dashboards.
+- As of March 24, 2026, the official BTS TranStats page for Reporting Carrier On-Time Performance shows `Latest Available Data: November 2025`.
+- Because of that official public-data limit, the project should not currently claim a fully BTS-backed integrated dashboard through February 2026, or even through December 2025, until the December 2025 BTS month is officially available.
+- The broader December 2024 through February 2026 range is still useful for source-native supplemental analysis in ASRS, NTSB, and FAASTeam views.
+
 ## Source Plan
 
 ### BTS On-Time / Delay Data
@@ -147,3 +159,4 @@ Recommended examples:
 - Preserve original source extracts in the raw layer before standardization.
 - Document download date, source URL, and any manual extraction steps in future ingestion modules or docs.
 - Where a public source is hard to automate, note the manual step rather than pretending the ingestion is fully automated.
+- Use `docs/real_data_acquisition_checklist.md` as the operational runbook for real public-data acquisition and rebuild order.

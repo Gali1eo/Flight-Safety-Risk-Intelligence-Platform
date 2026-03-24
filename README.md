@@ -48,6 +48,27 @@ SQL assets are split into:
 4. Run ingestion, transformation, feature, and model modules in sequence. For the local demo, trusted and analytics layer outputs are written as CSV files.
 5. Use the trusted and analytics outputs as inputs for SQL marts, notebooks, R analysis, or Tableau dashboards.
 
+## Real Public-Data Build
+The repo also supports a real public-data build with a requested 15-month portfolio horizon ending on `2026-02-28`.
+
+Use these windows:
+- Source-native supplemental window: `2024-12-01` through `2026-02-28` where the public source supports it
+- Planned integrated cross-source dashboard window: calendar year `2025`
+- Current verified executable integrated dashboard window as of `2026-03-24`: `2025-01-01` through `2025-11-30`
+
+Why the integrated cross-source window is currently capped below the requested 15-month horizon:
+- The integrated dashboard depends on BTS On-Time data as the public operational layer.
+- As of March 24, 2026, the official BTS Reporting Carrier On-Time Performance profile shows `Latest Available Data: November 2025`.
+- That means the project should not currently claim an integrated cross-source dashboard through `2026-02-28`, or even through `2025-12-31`, until a December 2025 BTS month is officially available.
+- The broader 15-month range should therefore be handled as source-native supplemental analysis where coverage exists.
+
+Real-data acquisition and rebuild runbook:
+- Review `docs/real_data_acquisition_checklist.md`
+- Place raw public files in the expected `data/raw` folders
+- Rebuild the trusted layer with `python3 -m src.transform.build_trusted_layer`
+- Rebuild analytics marts with `python3 -m src.features.build_analytics_marts`
+- Refresh Tableau dashboards from the rebuilt analytics outputs
+
 ## Local Sample Data
 The repo includes a small synthetic generator so the pipeline can run end to end without external downloads.
 
