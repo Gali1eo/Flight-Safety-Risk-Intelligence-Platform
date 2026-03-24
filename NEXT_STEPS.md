@@ -25,6 +25,16 @@ Current analytics outputs:
 Immediate next step:
 - Build Tableau Dashboard 1: Monthly Risk Overview
 
+Dashboard 1 build sequence:
+- Connect Tableau to `data/analytics/monthly_risk_overview.csv`
+- Review `docs/monthly_risk_overview_build_guide.md`
+- Build KPI header worksheet
+- Build monthly trend worksheet
+- Build airport heatmap worksheet
+- Build airport comparison scatter worksheet
+- Build synthetic culture context worksheet
+- Assemble the final dashboard with explicit proxy caveat text
+
 After that:
 - Dashboard 2: Operational Disruption Summary
 - Dashboard 3: Fatigue Theme Trends

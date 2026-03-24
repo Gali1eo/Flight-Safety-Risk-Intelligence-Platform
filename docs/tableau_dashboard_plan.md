@@ -4,6 +4,15 @@
 Goal:
 Serve as the primary showcase dashboard for interviews by telling a clear story about how public operational disruption, voluntary safety reporting, external investigations, and synthetic culture indicators can be aligned at a truthful monthly airport level.
 
+Build sequence:
+- Connect `monthly_risk_overview.csv`
+- Build KPI header first
+- Build monthly trend story second
+- Build airport heatmap third
+- Build airport comparison scatter fourth
+- Add synthetic culture context table last
+- See `docs/monthly_risk_overview_build_guide.md` for the detailed worksheet-by-worksheet sequence
+
 Primary KPIs:
 - Operational Flight Legs
 - Cancelled Flights
