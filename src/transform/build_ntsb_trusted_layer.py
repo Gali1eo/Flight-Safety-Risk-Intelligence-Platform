@@ -2,15 +2,22 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 
 from src.common.config import load_config, resolve_path
 from src.common.logging_utils import get_logger
 from src.common.validation import standardize_columns, validate_required_columns
-from src.ingest.ingest_datasets import discover_source_files
 
 
 LOGGER = get_logger(__name__)
+
+NTSB_SOURCE_FILES = {
+    "events": "ntsb_events.csv",
+    "aircraft": "ntsb_aircraft.csv",
+    "injury": "ntsb_injury.csv",
+}
 
 NTSB_REQUIRED_COLUMNS = [
     "ntsb_event_id",
@@ -23,28 +30,64 @@ NTSB_DUPLICATE_KEYS = ["ntsb_event_id"]
 
 SEVERITY_NORMALIZATION_MAP = {
     "NONE": "no_injury",
+    "NO INJURY": "no_injury",
+    "NO_INJURY": "no_injury",
+    "MINR": "minor_injury",
     "MINOR": "minor_injury",
+    "SERS": "serious_injury",
     "SERIOUS": "serious_injury",
+    "FATL": "fatal_injury",
     "FATAL": "fatal_injury",
 }
 
 EVENT_CATEGORY_NORMALIZATION_MAP = {
+    "ACC": "accident",
+    "ACCIDENT": "accident",
+    "INC": "incident",
+    "INCIDENT": "incident",
     "GROUND DAMAGE": "ground_event",
     "TURBULENCE INJURY": "in_flight_injury",
     "HARD LANDING": "landing_event",
     "MAINTENANCE ISSUE": "maintenance_event",
 }
+
+EVENT_TYPE_DISPLAY_MAP = {
+    "ACC": "Accident",
+    "ACCIDENT": "Accident",
+    "INC": "Incident",
+    "INCIDENT": "Incident",
+}
+
+AIRCRAFT_DAMAGE_NORMALIZATION_MAP = {
+    "DEST": "destroyed",
+    "DESTROYED": "destroyed",
+    "MINR": "minor",
+    "MINOR": "minor",
+    "SUBS": "substantial",
+    "SUBSTANTIAL": "substantial",
+    "UNK": "unknown",
+    "UNKNOWN": "unknown",
+    "NONE": "none",
+}
+
+NTSB_INJURY_PRIORITY = {"NONE": 0, "MINR": 1, "SERS": 2, "FATL": 3}
+
 NTSB_COLUMN_ALIASES = {
+    "ev_id": "ntsb_event_id",
     "event_id": "ntsb_event_id",
-    "event_date": "event_date",
-    "airport_code": "airport_code",
-    "air_carrier": "operator_name",
-    "operator_name": "operator_name",
-    "injury_severity": "injury_severity",
+    "ev_date": "event_date",
+    "ev_type": "event_type",
     "investigation_type": "event_type",
     "broad_phase_of_flight": "event_type",
-    "aircraft_damage": "aircraft_damage",
+    "ev_highest_injury": "injury_severity",
+    "injury_level": "injury_severity_from_injury",
+    "ev_nr_apt_id": "airport_code",
+    "airport_code": "airport_code",
+    "oper_name": "operator_name",
+    "air_carrier": "operator_name",
+    "damage": "aircraft_damage",
 }
+
 NTSB_TRUSTED_OUTPUT_COLUMNS = [
     "ntsb_event_id",
     "event_date",
@@ -62,11 +105,99 @@ NTSB_TRUSTED_OUTPUT_COLUMNS = [
 ]
 
 
+def _first_non_empty(series: pd.Series) -> object:
+    """Return the first non-empty, non-null value from a grouped series."""
+    cleaned = series.dropna().astype(str).str.strip()
+    cleaned = cleaned[cleaned.ne("")]
+    if cleaned.empty:
+        return pd.NA
+    return cleaned.iloc[0]
+
+
+def _load_ntsb_source_frame(file_path: Path) -> pd.DataFrame:
+    """Load a single raw NTSB CSV file and standardize its column names."""
+    if not file_path.exists():
+        return pd.DataFrame()
+    return standardize_columns(pd.read_csv(file_path, low_memory=False))
+
+
+def _build_ntsb_aircraft_lookup(aircraft: pd.DataFrame) -> pd.DataFrame:
+    """Collapse the aircraft extract to one row per NTSB event."""
+    if aircraft.empty:
+        return pd.DataFrame(columns=["ntsb_event_id", "operator_name", "aircraft_damage"])
+
+    lookup = aircraft.loc[aircraft["ev_id"].notna()].copy()
+    if lookup.empty:
+        return pd.DataFrame(columns=["ntsb_event_id", "operator_name", "aircraft_damage"])
+
+    lookup = lookup.groupby("ev_id", as_index=False).agg(
+        operator_name=("oper_name", _first_non_empty),
+        aircraft_damage=("damage", _first_non_empty),
+    )
+    lookup = lookup.rename(columns={"ev_id": "ntsb_event_id"})
+    return lookup
+
+
+def _build_ntsb_injury_lookup(injury: pd.DataFrame) -> pd.DataFrame:
+    """Collapse the injury extract to a best-effort severity fallback per event."""
+    if injury.empty:
+        return pd.DataFrame(columns=["ntsb_event_id", "injury_severity_from_injury"])
+
+    lookup = injury.loc[injury["ev_id"].notna()].copy()
+    if lookup.empty:
+        return pd.DataFrame(columns=["ntsb_event_id", "injury_severity_from_injury"])
+
+    lookup["injury_level"] = lookup["injury_level"].astype("string").str.strip().str.upper()
+    lookup["inj_person_count"] = pd.to_numeric(lookup["inj_person_count"], errors="coerce").fillna(0)
+    lookup = lookup.loc[
+        lookup["injury_level"].isin(NTSB_INJURY_PRIORITY) & (lookup["inj_person_count"] > 0)
+    ].copy()
+    if lookup.empty:
+        return pd.DataFrame(columns=["ntsb_event_id", "injury_severity_from_injury"])
+
+    lookup["severity_rank"] = lookup["injury_level"].map(NTSB_INJURY_PRIORITY)
+    lookup = lookup.sort_values(
+        ["ev_id", "severity_rank", "inj_person_count"],
+        ascending=[True, True, False],
+    )
+    lookup = lookup.groupby("ev_id", as_index=False).tail(1)[["ev_id", "injury_level"]]
+    lookup = lookup.rename(
+        columns={"ev_id": "ntsb_event_id", "injury_level": "injury_severity_from_injury"}
+    )
+    return lookup
+
+
+def _infer_no_injury_from_event_totals(frame: pd.DataFrame) -> pd.Series:
+    """Flag rows whose event-level injury totals are all zero or blank."""
+    injury_total_columns = [
+        "inj_f_grnd",
+        "inj_m_grnd",
+        "inj_s_grnd",
+        "inj_tot_f",
+        "inj_tot_m",
+        "inj_tot_n",
+        "inj_tot_s",
+        "inj_tot_t",
+    ]
+    available_columns = [column for column in injury_total_columns if column in frame.columns]
+    if not available_columns:
+        return pd.Series(False, index=frame.index)
+
+    total_counts = pd.Series(0, index=frame.index, dtype="float64")
+    for column in available_columns:
+        total_counts = total_counts + pd.to_numeric(frame[column], errors="coerce").fillna(0)
+    return total_counts.eq(0)
+
+
 def load_ntsb_raw() -> pd.DataFrame:
-    """Load all raw NTSB CSV files from the configured raw folder."""
-    source_files = discover_source_files("ntsb_investigations")
-    if not source_files:
-        raw_directory = resolve_path(load_config()["datasets"]["ntsb_investigations"]["path"])
+    """Load and join the exported NTSB CSV intermediates at event grain."""
+    config = load_config()
+    raw_directory = resolve_path(config["datasets"]["ntsb_investigations"]["path"])
+    events_path = raw_directory / NTSB_SOURCE_FILES["events"]
+    aircraft_path = raw_directory / NTSB_SOURCE_FILES["aircraft"]
+    injury_path = raw_directory / NTSB_SOURCE_FILES["injury"]
+
+    if not events_path.exists():
         mdb_candidates = sorted(raw_directory.glob("*.mdb")) + sorted(raw_directory.glob("*.zip"))
         if mdb_candidates:
             LOGGER.warning(
@@ -77,44 +208,101 @@ def load_ntsb_raw() -> pd.DataFrame:
             LOGGER.warning("No raw NTSB files were found in data/raw/ntsb_investigations.")
         return pd.DataFrame()
 
+    events = _load_ntsb_source_frame(events_path)
+    aircraft = _load_ntsb_source_frame(aircraft_path)
+    injury = _load_ntsb_source_frame(injury_path)
+
+    if events.empty:
+        LOGGER.warning("NTSB events CSV was found but did not contain any rows.")
+        return pd.DataFrame()
+
     LOGGER.info(
-        "NTSB files discovered: %s",
-        ", ".join(file_path.name for file_path in source_files),
+        "NTSB source tables loaded: events=%s row(s), aircraft=%s row(s), injury=%s row(s)",
+        len(events),
+        len(aircraft),
+        len(injury),
     )
 
-    frames = []
-    for file_path in source_files:
-        frame = pd.read_csv(file_path)
-        frame["raw_file_name"] = file_path.name
-        frames.append(frame)
+    # Build the event-level trusted record from the split public tables.
+    merged = events.copy()
+    merged["ntsb_event_id"] = merged["ev_id"]
+    merged["event_date"] = merged["ev_date"]
+    merged["event_type"] = merged["ev_type"]
+    merged["injury_severity"] = merged["ev_highest_injury"]
+    merged["airport_code"] = merged["ev_nr_apt_id"]
+    merged["source_system"] = "NTSB"
+    merged["raw_file_name"] = "|".join(
+        [path.name for path in [events_path, aircraft_path, injury_path] if path.exists()]
+    )
 
-    combined = pd.concat(frames, ignore_index=True)
-    LOGGER.info("NTSB rows loaded: %s", len(combined))
-    return combined
+    aircraft_lookup = _build_ntsb_aircraft_lookup(aircraft)
+    if not aircraft_lookup.empty:
+        merged = merged.merge(aircraft_lookup, on="ntsb_event_id", how="left")
+    else:
+        merged["operator_name"] = pd.NA
+        merged["aircraft_damage"] = pd.NA
+
+    injury_lookup = _build_ntsb_injury_lookup(injury)
+    if not injury_lookup.empty:
+        merged = merged.merge(injury_lookup, on="ntsb_event_id", how="left")
+        merged["injury_severity"] = merged["injury_severity"].combine_first(
+            merged["injury_severity_from_injury"]
+        )
+        merged = merged.drop(columns=["injury_severity_from_injury"])
+
+    blank_severity_mask = merged["injury_severity"].isna() | (
+        merged["injury_severity"].astype("string").str.strip() == ""
+    )
+    inferred_no_injury_mask = blank_severity_mask & _infer_no_injury_from_event_totals(merged)
+    inferred_no_injury_rows = int(inferred_no_injury_mask.sum())
+    if inferred_no_injury_rows:
+        merged.loc[inferred_no_injury_mask, "injury_severity"] = "NONE"
+        LOGGER.info(
+            "NTSB rows inferred as no injury from zero injury totals: %s",
+            inferred_no_injury_rows,
+        )
+
+    LOGGER.info("NTSB event-level rows prepared: %s", len(merged))
+    return merged
 
 
 def standardize_ntsb_schema(frame: pd.DataFrame) -> pd.DataFrame:
     """Map real NTSB extract fields into the adapter's canonical schema where practical."""
     standardized = frame.copy()
 
-    if "event_type" not in standardized.columns:
-        for source_column in ["investigation_type", "broad_phase_of_flight"]:
-            if source_column in standardized.columns:
-                standardized["event_type"] = standardized[source_column]
-                break
+    for source_column, target_column in NTSB_COLUMN_ALIASES.items():
+        if source_column not in standardized.columns:
+            continue
+        if target_column not in standardized.columns:
+            standardized[target_column] = standardized[source_column]
+        else:
+            standardized[target_column] = standardized[target_column].combine_first(
+                standardized[source_column]
+            )
 
-    if "operator_name" not in standardized.columns and "air_carrier" in standardized.columns:
-        standardized["operator_name"] = standardized["air_carrier"]
+    if "source_system" not in standardized.columns:
+        standardized["source_system"] = "NTSB"
+    else:
+        standardized["source_system"] = standardized["source_system"].fillna("NTSB")
 
-    if "ntsb_event_id" not in standardized.columns and "event_id" in standardized.columns:
-        standardized["ntsb_event_id"] = standardized["event_id"]
+    if "raw_file_name" not in standardized.columns:
+        standardized["raw_file_name"] = "|".join(NTSB_SOURCE_FILES.values())
+    else:
+        standardized["raw_file_name"] = standardized["raw_file_name"].fillna(
+            "|".join(NTSB_SOURCE_FILES.values())
+        )
+
+    for column in NTSB_NULL_CHECK_COLUMNS:
+        if column in standardized.columns:
+            standardized[column] = standardized[column].replace(r"^\s*$", pd.NA, regex=True)
 
     return standardized
 
 
 def drop_ntsb_rows_with_required_nulls(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     """Drop rows missing required NTSB values and report the count."""
-    required_mask = frame[NTSB_NULL_CHECK_COLUMNS].notna().all(axis=1)
+    required_values = frame[NTSB_NULL_CHECK_COLUMNS].replace(r"^\s*$", pd.NA, regex=True)
+    required_mask = required_values.notna().all(axis=1)
     dropped_rows = int((~required_mask).sum())
     cleaned = frame.loc[required_mask].reset_index(drop=True)
     return cleaned, dropped_rows
@@ -150,26 +338,55 @@ def deduplicate_ntsb_events(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
 
 
 def normalize_ntsb_fields(frame: pd.DataFrame) -> pd.DataFrame:
-    """Normalize investigation severity and event category values."""
+    """Normalize investigation severity, event type, and aircraft damage values."""
     normalized = frame.copy()
-    severity_upper = normalized["injury_severity"].astype(str).str.strip().str.upper()
-    category_upper = normalized["event_type"].astype(str).str.strip().str.upper()
 
     normalized["injury_severity_raw"] = normalized["injury_severity"]
     normalized["event_type_raw"] = normalized["event_type"]
-    normalized["severity_normalized"] = severity_upper.map(SEVERITY_NORMALIZATION_MAP).fillna(
+
+    severity_source = normalized["injury_severity"].astype("string").str.strip().str.upper()
+    severity_source = severity_source.replace({"": pd.NA})
+    normalized["severity_normalized"] = severity_source.map(SEVERITY_NORMALIZATION_MAP).fillna(
         "other_or_unknown"
     )
-    normalized["investigation_category"] = category_upper.map(
+    normalized["injury_severity"] = normalized["severity_normalized"]
+
+    event_type_source = normalized["event_type"].astype("string").str.strip().str.upper()
+    event_type_source = event_type_source.replace({"": pd.NA})
+    normalized["event_type"] = event_type_source.map(EVENT_TYPE_DISPLAY_MAP).fillna(
+        normalized["event_type"].astype("string").str.strip().str.title()
+    )
+    normalized["investigation_category"] = event_type_source.map(
         EVENT_CATEGORY_NORMALIZATION_MAP
     ).fillna("other_or_unknown")
 
-    normalized["injury_severity"] = severity_upper.str.lower().str.replace(" ", "_")
-    normalized["event_type"] = category_upper.str.title()
+    aircraft_damage_source = normalized["aircraft_damage"].astype("string").str.strip().str.upper()
+    aircraft_damage_source = aircraft_damage_source.replace({"": pd.NA})
+    normalized["aircraft_damage"] = aircraft_damage_source.map(
+        AIRCRAFT_DAMAGE_NORMALIZATION_MAP
+    ).fillna(
+        normalized["aircraft_damage"].astype("string").str.strip().str.lower().str.replace(" ", "_")
+    )
+    normalized["aircraft_damage"] = normalized["aircraft_damage"].fillna("unknown")
 
-    normalized["airport_code"] = normalized["airport_code"].fillna("UNKNOWN")
-    normalized["operator_name"] = normalized["operator_name"].fillna("UNKNOWN")
-    normalized["aircraft_damage"] = normalized["aircraft_damage"].fillna("UNKNOWN")
+    normalized["airport_code"] = (
+        normalized["airport_code"]
+        .astype("string")
+        .str.strip()
+        .replace({"": pd.NA})
+        .fillna("UNKNOWN")
+    )
+    normalized["operator_name"] = (
+        normalized["operator_name"]
+        .astype("string")
+        .str.strip()
+        .replace({"": pd.NA})
+        .fillna("UNKNOWN")
+    )
+    normalized["source_system"] = normalized["source_system"].fillna("NTSB")
+    normalized["raw_file_name"] = normalized["raw_file_name"].fillna(
+        "|".join(NTSB_SOURCE_FILES.values())
+    )
     return normalized
 
 
@@ -193,10 +410,13 @@ def build_ntsb_trusted_investigations() -> pd.DataFrame:
     LOGGER.info("NTSB rows dropped for invalid dates: %s", invalid_date_rows_dropped)
 
     if trusted_ntsb.empty:
-        LOGGER.warning("All NTSB rows were dropped during validation; no trusted NTSB output will be produced.")
+        LOGGER.warning(
+            "All NTSB rows were dropped during validation; no trusted NTSB output will be produced."
+        )
         return trusted_ntsb
 
     trusted_ntsb = normalize_ntsb_fields(trusted_ntsb)
+    trusted_ntsb = trusted_ntsb.reindex(columns=NTSB_TRUSTED_OUTPUT_COLUMNS)
 
     LOGGER.info(
         "Built trusted NTSB table with %s row(s) and %s column(s)",
