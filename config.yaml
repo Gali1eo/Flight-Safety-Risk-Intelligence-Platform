@@ -3,6 +3,8 @@ project:
   domain: aviation_safety
   owner: yashyadav
   environment: local
+  pilot_window_start: "2025-01-01"
+  pilot_window_end: "2025-02-28"
   description: >
     Portfolio-grade aviation safety analytics platform using public or synthetic
     data sources only. Internal airline safety systems are represented only by

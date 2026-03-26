@@ -31,6 +31,10 @@ BTS_NULL_CHECK_COLUMNS = [
     "diverted",
 ]
 BTS_DUPLICATE_KEYS = ["flight_date", "reporting_airline", "flight_number", "origin", "dest"]
+BTS_COLUMN_ALIASES = {
+    "flight_number_reporting_airline": "flight_number",
+    "iata_code_reporting_airline": "reporting_airline",
+}
 
 
 def load_bts_raw() -> pd.DataFrame:
@@ -47,13 +51,26 @@ def load_bts_raw() -> pd.DataFrame:
 
     frames = []
     for file_path in source_files:
-        frame = pd.read_csv(file_path)
+        frame = pd.read_csv(file_path, low_memory=False)
         frame["raw_file_name"] = file_path.name
         frames.append(frame)
 
     combined = pd.concat(frames, ignore_index=True)
     LOGGER.info("BTS rows loaded: %s", len(combined))
     return combined
+
+
+def standardize_bts_schema(frame: pd.DataFrame) -> pd.DataFrame:
+    """Align real BTS column names with the adapter's canonical schema."""
+    standardized = frame.copy()
+    rename_map = {
+        source: target
+        for source, target in BTS_COLUMN_ALIASES.items()
+        if source in standardized.columns and target not in standardized.columns
+    }
+    if rename_map:
+        standardized = standardized.rename(columns=rename_map)
+    return standardized
 
 
 def drop_bts_rows_with_required_nulls(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
@@ -65,13 +82,23 @@ def drop_bts_rows_with_required_nulls(frame: pd.DataFrame) -> tuple[pd.DataFrame
 
 
 def drop_bts_rows_with_invalid_dates(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
-    """Drop rows with invalid flight dates and standardize valid values."""
+    """Drop rows with invalid flight dates, filter to the pilot window, and standardize valid values."""
     trusted = frame.copy()
     parsed_dates = pd.to_datetime(trusted["flight_date"], errors="coerce")
     invalid_date_rows = int(parsed_dates.isna().sum())
 
     trusted = trusted.loc[parsed_dates.notna()].copy()
-    trusted["flight_date"] = parsed_dates.loc[parsed_dates.notna()].dt.date.astype(str)
+    parsed_dates = parsed_dates.loc[parsed_dates.notna()]
+    config = load_config()
+    pilot_start = pd.Timestamp(config["project"]["pilot_window_start"])
+    pilot_end = pd.Timestamp(config["project"]["pilot_window_end"])
+    in_window_mask = parsed_dates.between(pilot_start, pilot_end)
+    outside_window_rows = int((~in_window_mask).sum())
+    if outside_window_rows:
+        LOGGER.info("BTS rows dropped outside pilot window: %s", outside_window_rows)
+
+    trusted = trusted.loc[in_window_mask].copy()
+    trusted["flight_date"] = parsed_dates.loc[in_window_mask].dt.date.astype(str)
     trusted = trusted.reset_index(drop=True)
     return trusted, invalid_date_rows
 
@@ -136,6 +163,7 @@ def build_bts_trusted_operations() -> pd.DataFrame:
         return raw_bts
 
     trusted_bts = standardize_columns(raw_bts)
+    trusted_bts = standardize_bts_schema(trusted_bts)
     validate_required_columns(trusted_bts, BTS_REQUIRED_COLUMNS)
 
     trusted_bts, duplicate_rows_dropped = deduplicate_bts_flights(trusted_bts)

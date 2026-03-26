@@ -1,27 +1,25 @@
 # Restart Checkpoint
 
 Current stage:
-- Tableau work paused
-- Switching from tiny sample data to real public-data build
-- Requested scope: last 15 months ending 2026-02-28
-- Truthful integrated scope adjusted because official BTS Reporting Carrier On-Time data currently appear to end at 2025-11 as of 2026-03-24
+- Jan-Feb 2025 real-data pilot prep in progress
+- Tableau work remains paused for the pilot rebuild
+- FAASTeam manual extraction deferred for this pilot
+- Synthetic safety culture remains in place for the pilot
 
-Project windows:
-- Planned integrated cross-source dashboard window: 2025-01-01 to 2025-12-31
-- Current executable integrated dashboard window: 2025-01-01 to 2025-11-30
-- Source-native supplemental window: 2024-12-01 to 2026-02-28 where available
+Pilot window:
+- Integrated pilot scope: 2025-01-01 to 2025-02-28
 
 Next build order:
-1. Load real BTS monthly files for Jan-Nov 2025 and verify whether Dec 2025 has been officially released
-2. Load real NASA ASRS exports for Dec 2024-Feb 2026 if query results support it
-3. Load real NTSB aviation investigation data for Dec 2024-Feb 2026
-4. Load real FAASTeam past events for the last 15 months
-5. Rebuild trusted layer
-6. Rebuild analytics marts
-7. Rebuild Dashboard 1 in Tableau using real data
+1. Use real BTS Jan-Feb 2025 monthly CSV files already placed in `data/raw/bts_on_time`
+2. Use the real NASA ASRS Jan-Feb 2025 export already placed in `data/raw/nasa_asrs`
+3. Extract an official NTSB Jan-Feb 2025 CSV intermediate from the MDB source and place it in `data/raw/ntsb_investigations`
+4. Rebuild trusted layer
+5. Rebuild analytics marts
+6. Validate Jan-Feb 2025 outputs
+7. Resume Tableau work only after the pilot marts look correct
 
 Important constraints:
 - Public or synthetic data only
 - No FOQA, ASAP, or internal SMS claims
 - Aggregate-only joins
-- Use `docs/real_data_acquisition_checklist.md` as the real-data acquisition and rebuild runbook
+- Do not touch Tableau files during pilot adapter updates

@@ -21,6 +21,45 @@ ASRS_REQUIRED_COLUMNS = [
 ]
 ASRS_NULL_CHECK_COLUMNS = ["report_id", "event_date", "anomaly", "human_factors"]
 ASRS_DUPLICATE_KEYS = ["report_id"]
+ASRS_CANONICAL_COLUMN_MAP = {
+    "acn": "report_id",
+    "time_date": "event_date",
+    "place_locale_reference": "location",
+    "aircraft_1_aircraft_operator": "aircraft_operator",
+    "events_anomaly": "anomaly",
+    "person_1_human_factors": "human_factors",
+    "report_1_narrative": "narrative",
+    "report_1_synopsis": "narrative_synopsis",
+}
+
+
+def _flatten_asrs_headers(top_row: list[str], bottom_row: list[str]) -> list[str]:
+    """Flatten the NASA ASRS two-row export header into single snake_case names."""
+    flattened_headers = []
+    for left, right in zip(top_row, bottom_row):
+        left = left.strip()
+        right = right.strip()
+        if left and right:
+            flattened_headers.append(f"{left}_{right}")
+        else:
+            flattened_headers.append(left or right)
+    return flattened_headers
+
+
+def load_asrs_export_file(file_path: str) -> pd.DataFrame:
+    """Load a NASA ASRS CSV export that uses a two-row header and blank separator row."""
+    frame = pd.read_csv(file_path, header=None, dtype=str)
+    if len(frame) < 3:
+        return pd.DataFrame()
+
+    top_row = frame.iloc[0].fillna("").astype(str).tolist()
+    bottom_row = frame.iloc[1].fillna("").astype(str).tolist()
+    flattened_headers = _flatten_asrs_headers(top_row, bottom_row)
+
+    data = frame.iloc[3:].copy()
+    data.columns = flattened_headers
+    data = data.dropna(how="all").reset_index(drop=True)
+    return data
 
 
 def load_asrs_raw() -> pd.DataFrame:
@@ -37,13 +76,38 @@ def load_asrs_raw() -> pd.DataFrame:
 
     frames = []
     for file_path in source_files:
-        frame = pd.read_csv(file_path)
+        frame = load_asrs_export_file(file_path)
         frame["raw_file_name"] = file_path.name
         frames.append(frame)
 
     combined = pd.concat(frames, ignore_index=True)
     LOGGER.info("ASRS rows loaded: %s", len(combined))
     return combined
+
+
+def standardize_asrs_schema(frame: pd.DataFrame) -> pd.DataFrame:
+    """Map real NASA ASRS export fields into the adapter's canonical schema."""
+    standardized = frame.copy()
+    rename_map = {
+        source: target
+        for source, target in ASRS_CANONICAL_COLUMN_MAP.items()
+        if source in standardized.columns and target not in standardized.columns
+    }
+    standardized = standardized.rename(columns=rename_map)
+
+    if "narrative" not in standardized.columns and "narrative_synopsis" in standardized.columns:
+        standardized["narrative"] = standardized["narrative_synopsis"]
+
+    if "narrative" in standardized.columns and "narrative_synopsis" in standardized.columns:
+        standardized["narrative"] = standardized["narrative"].fillna("").replace("", pd.NA)
+        standardized["narrative"] = standardized["narrative"].fillna(
+            standardized["narrative_synopsis"]
+        )
+
+    if "source_system" not in standardized.columns:
+        standardized["source_system"] = "NASA_ASRS"
+
+    return standardized
 
 
 def drop_asrs_rows_with_required_nulls(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
@@ -55,13 +119,29 @@ def drop_asrs_rows_with_required_nulls(frame: pd.DataFrame) -> tuple[pd.DataFram
 
 
 def drop_asrs_rows_with_invalid_dates(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
-    """Drop rows with invalid event dates and standardize valid values."""
+    """Drop rows with invalid event dates, filter to the pilot window, and standardize valid values."""
     trusted = frame.copy()
-    parsed_dates = pd.to_datetime(trusted["event_date"], errors="coerce")
+    event_date_text = trusted["event_date"].astype(str).str.strip()
+    parsed_dates = pd.to_datetime(event_date_text, format="%Y%m", errors="coerce")
+    missing_mask = parsed_dates.isna()
+    if missing_mask.any():
+        parsed_dates.loc[missing_mask] = pd.to_datetime(
+            event_date_text.loc[missing_mask], errors="coerce"
+        )
     invalid_date_rows = int(parsed_dates.isna().sum())
 
     trusted = trusted.loc[parsed_dates.notna()].copy()
-    trusted["event_date"] = parsed_dates.loc[parsed_dates.notna()].dt.date.astype(str)
+    parsed_dates = parsed_dates.loc[parsed_dates.notna()]
+    config = load_config()
+    pilot_start = pd.Timestamp(config["project"]["pilot_window_start"])
+    pilot_end = pd.Timestamp(config["project"]["pilot_window_end"])
+    in_window_mask = parsed_dates.between(pilot_start, pilot_end)
+    outside_window_rows = int((~in_window_mask).sum())
+    if outside_window_rows:
+        LOGGER.info("ASRS rows dropped outside pilot window: %s", outside_window_rows)
+
+    trusted = trusted.loc[in_window_mask].copy()
+    trusted["event_date"] = parsed_dates.loc[in_window_mask].dt.date.astype(str)
     trusted = trusted.reset_index(drop=True)
     return trusted, invalid_date_rows
 
@@ -80,6 +160,7 @@ def build_asrs_trusted_reports() -> pd.DataFrame:
         return raw_asrs
 
     trusted_asrs = standardize_columns(raw_asrs)
+    trusted_asrs = standardize_asrs_schema(trusted_asrs)
     validate_required_columns(trusted_asrs, ASRS_REQUIRED_COLUMNS)
 
     trusted_asrs, duplicate_rows_dropped = deduplicate_asrs_reports(trusted_asrs)

@@ -13,6 +13,73 @@ from src.common.validation import standardize_columns
 
 LOGGER = get_logger(__name__)
 
+MONTHLY_RISK_OVERVIEW_COLUMNS = [
+    "report_month",
+    "airport",
+    "region",
+    "operational_flight_legs",
+    "cancelled_flights",
+    "diverted_flights",
+    "avg_departure_delay_minutes",
+    "avg_arrival_delay_minutes",
+    "asrs_report_count",
+    "fatigue_related_report_count",
+    "ntsb_investigation_count",
+    "serious_or_higher_investigation_count",
+    "avg_training_completion_rate",
+    "avg_safety_engagement_score",
+    "fatigue_training_completion_rate",
+    "synthetic_elevated_risk_count",
+    "data_basis",
+]
+FATIGUE_THEME_TRENDS_COLUMNS = [
+    "report_month",
+    "airport",
+    "carrier",
+    "region",
+    "human_factor_theme",
+    "fatigue_related_flag",
+    "report_count",
+    "unique_anomaly_count",
+    "data_basis",
+]
+INVESTIGATION_TRENDS_COLUMNS = [
+    "report_month",
+    "airport",
+    "operator_group",
+    "region",
+    "investigation_category",
+    "severity_normalized",
+    "investigation_count",
+    "serious_or_higher_count",
+    "data_basis",
+]
+OPERATIONAL_DISRUPTION_SUMMARY_COLUMNS = [
+    "report_month",
+    "carrier",
+    "origin_airport",
+    "destination_airport",
+    "route",
+    "region",
+    "flight_leg_count",
+    "cancelled_flight_count",
+    "diverted_flight_count",
+    "avg_departure_delay_minutes",
+    "avg_arrival_delay_minutes",
+    "cancellation_rate",
+    "diversion_rate",
+    "data_basis",
+]
+SAFETY_PROMOTION_SUMMARY_COLUMNS = [
+    "report_month",
+    "state",
+    "region",
+    "topic",
+    "audience_type",
+    "event_count",
+    "data_basis",
+]
+
 AIRPORT_REGION_MAP = {
     "ATL": "Southeast",
     "BOS": "Northeast",
@@ -50,7 +117,7 @@ def load_csv_output(path_key: str) -> pd.DataFrame:
     if not file_path.exists():
         LOGGER.warning("Expected input file was not found at %s", file_path)
         return pd.DataFrame()
-    return pd.read_csv(file_path)
+    return pd.read_csv(file_path, low_memory=False)
 
 
 def load_raw_dataset(dataset_name: str) -> pd.DataFrame:
@@ -61,7 +128,7 @@ def load_raw_dataset(dataset_name: str) -> pd.DataFrame:
     if not source_files:
         LOGGER.warning("No raw files were found for dataset '%s' in %s", dataset_name, dataset_path)
         return pd.DataFrame()
-    frames = [pd.read_csv(file_path) for file_path in source_files]
+    frames = [pd.read_csv(file_path, low_memory=False) for file_path in source_files]
     return standardize_columns(pd.concat(frames, ignore_index=True))
 
 
@@ -95,7 +162,7 @@ def map_operator_to_carrier(series: pd.Series) -> pd.Series:
 def build_operational_disruption_summary(bts: pd.DataFrame) -> pd.DataFrame:
     """Summarize BTS operational disruption signals by month, carrier, airport, and route."""
     if bts.empty:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=OPERATIONAL_DISRUPTION_SUMMARY_COLUMNS)
 
     operations = add_month_column(bts, "flight_date")
     operations["region"] = map_airport_region(operations["origin_airport"])
@@ -127,7 +194,7 @@ def build_operational_disruption_summary(bts: pd.DataFrame) -> pd.DataFrame:
 def build_fatigue_theme_trends(asrs: pd.DataFrame) -> pd.DataFrame:
     """Summarize ASRS fatigue and human-factor themes for monthly trend analysis."""
     if asrs.empty:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=FATIGUE_THEME_TRENDS_COLUMNS)
 
     reports = add_month_column(asrs, "event_date")
     reports["airport"] = reports["location"].fillna("UNKNOWN").astype(str).str.strip().str.upper()
@@ -156,7 +223,7 @@ def build_fatigue_theme_trends(asrs: pd.DataFrame) -> pd.DataFrame:
 def build_investigation_trends(ntsb: pd.DataFrame) -> pd.DataFrame:
     """Summarize NTSB investigation activity and severity by month and airport."""
     if ntsb.empty:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=INVESTIGATION_TRENDS_COLUMNS)
 
     investigations = add_month_column(ntsb, "event_date")
     investigations["airport"] = investigations["airport_code"].fillna("UNKNOWN").astype(str).str.strip().str.upper()
@@ -191,7 +258,7 @@ def build_investigation_trends(ntsb: pd.DataFrame) -> pd.DataFrame:
 def build_safety_promotion_summary(faasteam: pd.DataFrame) -> pd.DataFrame:
     """Summarize FAASTeam public safety-promotion events for portfolio dashboards."""
     if faasteam.empty:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=SAFETY_PROMOTION_SUMMARY_COLUMNS)
 
     events = add_month_column(faasteam, "event_date")
     events["state"] = events["state"].fillna("UNKNOWN").astype(str).str.strip().str.upper()
@@ -282,7 +349,7 @@ def build_monthly_risk_overview(
         frames.append(culture_summary)
 
     if not frames:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=MONTHLY_RISK_OVERVIEW_COLUMNS)
 
     overview = frames[0]
     for frame in frames[1:]:
@@ -297,13 +364,18 @@ def build_monthly_risk_overview(
 
 def write_output(frame: pd.DataFrame, output_key: str) -> None:
     """Write an analytics output CSV if data is available."""
-    if frame.empty:
-        LOGGER.warning("No data was available for analytics output '%s'.", output_key)
-        return
-
     config = load_config()
     output_path = resolve_path(config["outputs"][output_key])
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    if frame.empty:
+        frame.to_csv(output_path, index=False)
+        LOGGER.warning(
+            "No data was available for analytics output '%s'; wrote an empty CSV to %s to avoid stale outputs.",
+            output_key,
+            output_path,
+        )
+        return
+
     frame.to_csv(output_path, index=False)
     LOGGER.info("Wrote analytics output '%s' to %s", output_key, output_path)
 

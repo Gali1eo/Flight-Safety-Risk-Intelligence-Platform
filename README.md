@@ -69,6 +69,18 @@ Real-data acquisition and rebuild runbook:
 - Rebuild analytics marts with `python3 -m src.features.build_analytics_marts`
 - Refresh Tableau dashboards from the rebuilt analytics outputs
 
+## Jan-Feb 2025 Real-Data Pilot
+The current pilot scope is intentionally narrow and uses:
+- Real BTS monthly files for January and February 2025
+- One real NASA ASRS export covering January and February 2025
+- Real NTSB source files for the same pilot period, using a CSV intermediate if MDB direct ingestion is not practical in the local environment
+- Synthetic safety culture remains in place for the pilot
+- FAASTeam manual extraction is deferred for this pilot, so the safety-promotion proxy remains synthetic / placeholder-oriented
+
+For the NTSB pilot specifically:
+- If the raw source is only `ntsb_aviation_avall.mdb` or the zipped MDB, extract an official CSV intermediate outside the project environment and place it in `data/raw/ntsb_investigations`
+- The NTSB adapter will use CSV files directly and warn clearly when only MDB/ZIP files are present
+
 ## Local Sample Data
 The repo includes a small synthetic generator so the pipeline can run end to end without external downloads.
 
