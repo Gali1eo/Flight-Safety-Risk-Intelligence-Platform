@@ -165,6 +165,9 @@ outputs:
   trusted_bts_table: data/trusted/trusted_bts_on_time_operations.csv
   monthly_risk_overview: data/analytics/monthly_risk_overview.csv
   fatigue_theme_trends: data/analytics/fatigue_theme_trends.csv
+  asrs_nlp_enriched: data/analytics/asrs_nlp_enriched.csv
+  asrs_fatigue_model_summary: data/analytics/asrs_fatigue_model_summary.json
+  asrs_fatigue_predictions: data/analytics/asrs_fatigue_predictions.csv
   investigation_trends: data/analytics/investigation_trends.csv
   operational_disruption_summary: data/analytics/operational_disruption_summary.csv
   safety_promotion_summary: data/analytics/safety_promotion_summary.csv

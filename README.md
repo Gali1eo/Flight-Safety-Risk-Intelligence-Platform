@@ -34,6 +34,8 @@ Used as the operational context layer for flight volume, delays, cancellations, 
 ### 2. NASA ASRS
 Used as a public voluntary safety-report source for fatigue and human-factor themes.
 
+A lightweight rule-based NLP baseline enriches the trusted ASRS pilot extract for manual review and later benchmarking. It stays within the Jan-Feb 2025 window and uses the trusted location/operator equivalents found in the source file.
+
 ### 3. NTSB Aviation Investigations
 Used as external investigation and severity context.
 
@@ -83,6 +85,9 @@ This public-data pilot currently covers:
 
 The pilot was intentionally constrained to create a truthful, manageable first production-style portfolio version before expanding the historical window.
 
+## ASRS Fatigue Benchmark
+The first benchmark model uses TF-IDF features from `narrative_clean` and a class-balanced logistic regression to predict the proxy label `weak_fatigue_label`. It uses 3-fold stratified cross-validation and writes compact validation artifacts for manual review.
+
 ## Key Caveats
 - This is a **public-data-based, proxy-driven** project.
 - It does **not** represent internal airline operational telemetry.
@@ -98,3 +103,9 @@ From the project root:
 source .venv/bin/activate
 python -m src.transform.build_trusted_layer
 python -m src.features.build_analytics_marts
+python -m src.features.build_asrs_nlp_baseline
+python -m src.models.train_asrs_fatigue_benchmark
+```
+
+That baseline writes `data/analytics/asrs_nlp_enriched.csv`.
+The benchmark writes `data/analytics/asrs_fatigue_model_summary.json` and `data/analytics/asrs_fatigue_predictions.csv`.
