@@ -1,18 +1,31 @@
+# Keep only the root README public
+**/*.md
+!/README.md
+
+# Allow public dashboard export images
+!docs/
+!docs/dashboard_exports/
+!docs/dashboard_exports/*.png
+
+# macOS junk
 .DS_Store
+**/.DS_Store
+
+# Python cache
 __pycache__/
-*.py[cod]
-.pytest_cache/
-.mypy_cache/
-.venv/
-venv/
-env/
+**/__pycache__/
+*.pyc
 
-data/raw/*
-data/trusted/*
-data/analytics/*
-!data/raw/.gitkeep
-!data/trusted/.gitkeep
-!data/analytics/.gitkeep
+# Logs
+logs/
 
-notebooks/.ipynb_checkpoints/
-*.log
+# Local data files (do not push)
+data/raw/
+data/trusted/
+data/analytics/
+
+# Local Tableau files (do not push)
+tableau/
+*.twb
+*.twbx
+*.twbr
