@@ -169,6 +169,13 @@ outputs:
   asrs_fatigue_model_summary: data/analytics/asrs_fatigue_model_summary.json
   asrs_fatigue_predictions: data/analytics/asrs_fatigue_predictions.csv
   asrs_fatigue_features: data/analytics/asrs_fatigue_features.csv
+  asrs_fatigue_model_comparison: data/analytics/asrs_fatigue_model_comparison.json
+  asrs_nlp_scored: data/analytics/asrs_nlp_scored.csv
+  asrs_fatigue_summary_by_month: data/analytics/asrs_fatigue_summary_by_month.csv
+  asrs_fatigue_summary_by_operator: data/analytics/asrs_fatigue_summary_by_operator.csv
+  asrs_fatigue_summary_by_location: data/analytics/asrs_fatigue_summary_by_location.csv
+  asrs_fatigue_summary_by_theme: data/analytics/asrs_fatigue_summary_by_theme.csv
+  pilot_release_manifest: docs/pilot_release_manifest.json
   investigation_trends: data/analytics/investigation_trends.csv
   operational_disruption_summary: data/analytics/operational_disruption_summary.csv
   safety_promotion_summary: data/analytics/safety_promotion_summary.csv

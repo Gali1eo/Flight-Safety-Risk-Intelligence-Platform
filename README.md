@@ -1,105 +1,121 @@
 # Flight Safety Risk Intelligence Platform
 
-## Project Goal
-Build a portfolio-grade flight safety analytics platform aligned to a Flight Safety Data Science internship using only public and synthetic data. The project analyzes operational trends, voluntary safety-report signals, investigation patterns, and fatigue-related human-factor themes through a raw → trusted → analytics pipeline and Tableau dashboards.
+## Overview
+Flight Safety Risk Intelligence Platform is an end-to-end aviation analytics project built with public and synthetic data. It combines operational disruption data, voluntary safety reports, investigation context, and fatigue-related narrative analysis through a raw → trusted → analytics pipeline and Tableau dashboards.
 
-## Public-Data / Proxy Disclaimer
+## Public Data and Proxy Scope
 This project does **not** use confidential airline FOQA, ASAP, or internal Safety Management System data.
 
 Instead, it uses clearly labeled public or synthetic proxies:
-- **BTS On-Time / Delay** as an operational / FOQA-style proxy
-- **NASA ASRS** as a voluntary safety-report / fatigue / human-factors proxy
+- **BTS On-Time / Delay** as an operational context proxy
+- **NASA ASRS** as a voluntary safety-report and human-factors proxy
 - **NTSB aviation investigation data** as investigation context
-- **Synthetic safety-culture data** as a safety-culture proxy for the current pilot phase
+- **Synthetic safety-culture data** as a clearly labeled proxy for the pilot phase
 
-All cross-source integration is aggregate-only and interview-defensible.
+All cross-source integration is aggregate-only and explicitly framed as proxy-based.
 
 ## Architecture
-The platform follows an AWS-style layered design:
+The repo follows a simple raw -> trusted -> analytics pattern:
 
-- **Raw layer**: source-aligned public and synthetic files
-- **Trusted layer**: standardized, validated, privacy-aware outputs
-- **Analytics layer**: dashboard-ready marts and summary datasets
+- `data/raw` for source-aligned public and synthetic inputs
+- `data/trusted` for standardized, validated, privacy-aware tables
+- `data/analytics` for dashboard-ready marts, model outputs, and summaries
 
-Tech stack:
-- **Python** for ingestion, transformation, feature engineering, and analytics
-- **SQL / warehouse-style marts** for structured analytical modeling
-- **Tableau** for dashboarding and presentation
-- **CSV-based local pilot workflow** for easy reproducibility
+Core stack:
 
-## Data Sources
-### 1. BTS On-Time / Delay
-Used as the operational context layer for flight volume, delays, cancellations, and diversions.
+- Python for ingest, ETL, NLP, feature engineering, and ML
+- SQL for warehouse-style schema and marts
+- Tableau for dashboards
+- CSV-based local pilot workflow for reproducibility
 
-### 2. NASA ASRS
-Used as a public voluntary safety-report source for fatigue and human-factor themes.
+## Pilot Scope And Sources
+The final pilot is intentionally scoped to **January 2025 through February 2025**.
 
-A lightweight rule-based NLP baseline enriches the trusted ASRS pilot extract for manual review and later benchmarking. It stays within the Jan-Feb 2025 window and uses the trusted location/operator equivalents found in the source file.
+Public / proxy sources:
 
-### 3. NTSB Aviation Investigations
-Used as external investigation and severity context.
+- **BTS On-Time / Delay** for operational disruption context
+- **NASA ASRS** for voluntary safety-report and fatigue proxy signals
+- **NTSB aviation investigations** for external investigation context
+- **FAASTeam** for safety-promotion proxy context
+- **Synthetic safety culture** for demonstration-only culture and training proxies
 
-### 4. Synthetic Safety Culture
-Used in the current pilot as a clearly labeled synthetic proxy for safety culture / training indicators.
+# Flight Safety Risk Intelligence Platform
 
-## Dashboard 1: Monthly Risk Overview
-![Dashboard 1](docs/dashboard_exports/dashboard_1_monthly_risk_overview.png)
 
-What it shows:
-- operational flight volume across the Jan–Feb 2025 pilot window
-- ASRS report activity and investigation context
-- high-level KPI view for the pilot
-- airport-level operational concentration
+## Dashboard Summary
+### Dashboard 1: Monthly Risk Overview
+Shows month-level operational risk context across the pilot window, including BTS activity, ASRS report volume, investigation context, and airport-level concentration.
 
-Why it matters:
-This dashboard gives an interview-ready executive view of how public operational and safety proxies can be integrated into a monthly flight safety monitoring story.
+### Dashboard 2: Investigation Trends
+Shows NTSB investigation volume, category mix, and severity context across the pilot window. It demonstrates how public investigation data can complement operational proxies without implying internal airline access.
 
-## Dashboard 2: Investigation Trends
-![Dashboard 2](docs/dashboard_exports/dashboard_2_investigation_trends.png)
+### Dashboard 3: Fatigue Theme Trends
+Shows ASRS-derived fatigue and human-factor themes. This dashboard is intentionally frozen in a limited refreshed state after model enrichment. It should be treated as a pilot view, not a full redesign, and the fatigue signal remains proxy-based rather than ground truth.
 
-What it shows:
-- NTSB investigation counts across the pilot window
-- investigation category distribution
-- severity mix
-- investigation trend context
+## ASRS NLP And Fatigue Modeling
+The ASRS pipeline is built around the trusted Jan-Feb 2025 pilot extract and keeps the schema truthful by using the trusted `location` and `aircraft_operator` equivalents present in the source file.
 
-Why it matters:
-This dashboard demonstrates how public investigation data can be used to add external safety-event context without claiming internal airline monitoring access.
+### Rule-Based Baseline
+The first NLP layer is a transparent ASRS baseline built on `narrative_clean`. It produces:
 
-## Dashboard 3: Fatigue Theme Trends
-![Dashboard 3](docs/dashboard_exports/dashboard_3_fatigue_theme_trends.png)
+- `narrative_clean`
+- `fatigue_keyword_flag`
+- `fatigue_keyword_count`
+- `fatigue_confidence_tier`
+- `weak_fatigue_label`
+- `theme_fatigue_flag`
+- `theme_communication_flag`
+- `theme_distraction_flag`
+- `theme_workload_flag`
+- `theme_procedure_checklist_flag`
+- `theme_ground_taxi_conflict_flag`
+- `theme_approach_landing_instability_flag`
+- `theme_primary_label`
 
-What it shows:
-- ASRS-derived fatigue and human-factor theme signals
-- top fatigue-related themes
-- report concentration by carrier/theme grouping
-- Jan–Feb 2025 trend movement
+### Benchmark 1
+TF-IDF plus class-balanced logistic regression on `narrative_clean` only.
 
-Why it matters:
-This dashboard highlights how voluntary public safety reports can be used as a defensible fatigue and human-factors proxy.
+- 3-fold stratified cross-validation
+- Proxy target: `weak_fatigue_label`
+- OOF positive metrics: precision `0.0526`, recall `0.1667`, F1 `0.08`
+- Average precision: `0.0299`
+- ROC AUC: `0.6083`
+- Confusion matrix: `614 TN / 36 FP / 10 FN / 2 TP`
 
-## Current Pilot Scope
-This public-data pilot currently covers:
-- **January 2025**
-- **February 2025**
+### Benchmark 2
+TF-IDF plus the engineered narrative fatigue features from `src/features/build_asrs_fatigue_features.py`.
 
-The pilot was intentionally constrained to create a truthful, manageable first production-style portfolio version before expanding the historical window.
+- 3-fold stratified cross-validation
+- Same proxy target: `weak_fatigue_label`
+- OOF positive metrics: precision `0.9`, recall `0.75`, F1 `0.8182`
+- Average precision: `0.7775`
+- ROC AUC: `0.8574`
+- Confusion matrix: `649 TN / 1 FP / 3 FN / 9 TP`
 
-## ASRS Fatigue Benchmark
-The first benchmark model uses TF-IDF features from `narrative_clean` and a class-balanced logistic regression to predict the proxy label `weak_fatigue_label`. It uses 3-fold stratified cross-validation and writes compact validation artifacts for manual review.
+### Why Benchmark 2 Was Selected
+Benchmark 2 won on the primary imbalance-aware metric, average precision, and also delivered a large positive F1 gain. It is the selected model for the pilot release because it is still lightweight and interpretable, but materially better than the text-only baseline.
 
-## ASRS Fatigue Feature Engineering
-The next ASRS feature pass turns `narrative_clean` into a small, transparent feature table with explicit fatigue counts, rest/sleep/duty context, hypothetical wording guards, and operational-noise counts. The output is keyed by `report_id` and preserves `weak_fatigue_label` so the second benchmark can be built without re-deriving the proxy target.
+## Release Artifacts
+The current public outputs are written to `data/analytics` and are ready for downstream analysis or Tableau enrichment.
 
-## Key Caveats
-- This is a **public-data-based, proxy-driven** project.
-- It does **not** represent internal airline operational telemetry.
-- ASRS is a voluntary reporting source and is not equivalent to ASAP.
-- BTS is an operational proxy and not FOQA.
-- NTSB investigations are external records and may lag actual event timing.
-- Synthetic safety-culture data is clearly labeled and used only where a truthful public substitute was not practical in this pilot phase.
+- `data/analytics/asrs_nlp_enriched.csv`
+- `data/analytics/asrs_fatigue_features.csv`
+- `data/analytics/asrs_fatigue_model_summary.json`
+- `data/analytics/asrs_fatigue_predictions.csv`
+- `data/analytics/asrs_fatigue_model_comparison.json`
+- `data/analytics/asrs_nlp_scored.csv`
+- `data/analytics/asrs_fatigue_summary_by_month.csv`
+- `data/analytics/asrs_fatigue_summary_by_operator.csv`
+- `data/analytics/asrs_fatigue_summary_by_location.csv`
+- `data/analytics/asrs_fatigue_summary_by_theme.csv`
+- `docs/dashboard_exports/dashboard_1_monthly_risk_overview.png`
+- `docs/dashboard_exports/dashboard_2_investigation_trends.png`
+- `docs/dashboard_exports/dashboard_3_fatigue_theme_trends.png`
+- `docs/pilot_release_manifest.json`
 
-## How to Re-run the Pipeline
+The compact release manifest is included for quick portfolio review and machine-readable inventory.
+
+## How To Re-Run
 From the project root:
 
 ```bash
@@ -109,8 +125,21 @@ python -m src.features.build_analytics_marts
 python -m src.features.build_asrs_nlp_baseline
 python -m src.features.build_asrs_fatigue_features
 python -m src.models.train_asrs_fatigue_benchmark
+python -m src.models.train_asrs_fatigue_hybrid_benchmark
 ```
 
-That baseline writes `data/analytics/asrs_nlp_enriched.csv`.
-The benchmark writes `data/analytics/asrs_fatigue_model_summary.json` and `data/analytics/asrs_fatigue_predictions.csv`.
-The feature-engineering step writes `data/analytics/asrs_fatigue_features.csv`.
+## Key Caveats
+
+- This is a **public-data-based, proxy-driven** project.
+- ASRS is a voluntary reporting source and is not equivalent to ASAP.
+- BTS is an operational proxy and not FOQA.
+- Model-enriched fatigue signals are **not** ground truth fatigue labels.
+- NTSB records provide external investigation context and may lag event timing.
+- Synthetic safety-culture data is clearly labeled and used only where a truthful public substitute was not practical in this pilot.
+
+## Future Enhancements
+
+- Expand the pilot window beyond Jan-Feb 2025 after additional validation
+- Add more public-source coverage where it remains defensible
+- Add R-based validation once the pilot scope broadens
+- Refresh Dashboard 3 only after any further model or scope expansion

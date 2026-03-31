@@ -1,0 +1,93 @@
+{
+  "project": {
+    "name": "Flight Safety Risk Intelligence Platform",
+    "release_type": "portfolio_ready_pilot",
+    "pilot_window": {
+      "start": "2025-01-01",
+      "end": "2025-02-28"
+    },
+    "data_policy": {
+      "public_data_only": true,
+      "proxy_driven": true,
+      "no_foqa": true,
+      "no_asap": true,
+      "no_internal_sms": true,
+      "model_enriched_fatigue_signals_are_not_ground_truth": true
+    }
+  },
+  "dashboards": [
+    {
+      "name": "Dashboard 1",
+      "status": "complete",
+      "artifact": "docs/dashboard_exports/dashboard_1_monthly_risk_overview.png",
+      "summary": "Monthly operational risk overview using BTS, ASRS, and NTSB public proxies."
+    },
+    {
+      "name": "Dashboard 2",
+      "status": "complete",
+      "artifact": "docs/dashboard_exports/dashboard_2_investigation_trends.png",
+      "summary": "Investigation trend view using public NTSB context."
+    },
+    {
+      "name": "Dashboard 3",
+      "status": "partially_refreshed_and_frozen",
+      "artifact": "docs/dashboard_exports/dashboard_3_fatigue_theme_trends.png",
+      "summary": "Limited refreshed fatigue theme view driven by ASRS proxy signals."
+    }
+  ],
+  "asrs_nlp": {
+    "baseline_output": "data/analytics/asrs_nlp_enriched.csv",
+    "feature_table": "data/analytics/asrs_fatigue_features.csv",
+    "proxy_target": "weak_fatigue_label",
+    "selected_features": [
+      "narrative_clean",
+      "fatigue_keyword_flag",
+      "fatigue_keyword_count",
+      "fatigue_confidence_tier",
+      "weak_fatigue_label",
+      "theme_primary_label"
+    ]
+  },
+  "benchmarks": {
+    "benchmark_1": {
+      "model_name": "tfidf_logistic_regression",
+      "oof_average_precision": 0.0299,
+      "oof_positive_f1": 0.08,
+      "oof_precision": 0.0526,
+      "oof_recall": 0.1667,
+      "confusion_matrix": {
+        "tn": 614,
+        "fp": 36,
+        "fn": 10,
+        "tp": 2
+      }
+    },
+    "benchmark_2": {
+      "model_name": "tfidf_logistic_regression_plus_engineered_features",
+      "oof_average_precision": 0.7775,
+      "oof_positive_f1": 0.8182,
+      "oof_precision": 0.9,
+      "oof_recall": 0.75,
+      "confusion_matrix": {
+        "tn": 649,
+        "fp": 1,
+        "fn": 3,
+        "tp": 9
+      }
+    },
+    "selected_model": "benchmark_2_hybrid_text_plus_features",
+    "selection_rule": "average_precision primary, positive_f1 tiebreaker"
+  },
+  "public_outputs": [
+    "data/analytics/asrs_nlp_enriched.csv",
+    "data/analytics/asrs_fatigue_features.csv",
+    "data/analytics/asrs_fatigue_model_summary.json",
+    "data/analytics/asrs_fatigue_predictions.csv",
+    "data/analytics/asrs_fatigue_model_comparison.json",
+    "data/analytics/asrs_nlp_scored.csv",
+    "data/analytics/asrs_fatigue_summary_by_month.csv",
+    "data/analytics/asrs_fatigue_summary_by_operator.csv",
+    "data/analytics/asrs_fatigue_summary_by_location.csv",
+    "data/analytics/asrs_fatigue_summary_by_theme.csv"
+  ]
+}

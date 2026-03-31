@@ -30,4 +30,9 @@ tableau/
 *.twbx
 *.twbr
 
+# Hide project notes / briefs
+*Projectidea
+*projectbrief.txt
+
+
 /private_notes/
