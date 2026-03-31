@@ -168,6 +168,7 @@ outputs:
   asrs_nlp_enriched: data/analytics/asrs_nlp_enriched.csv
   asrs_fatigue_model_summary: data/analytics/asrs_fatigue_model_summary.json
   asrs_fatigue_predictions: data/analytics/asrs_fatigue_predictions.csv
+  asrs_fatigue_features: data/analytics/asrs_fatigue_features.csv
   investigation_trends: data/analytics/investigation_trends.csv
   operational_disruption_summary: data/analytics/operational_disruption_summary.csv
   safety_promotion_summary: data/analytics/safety_promotion_summary.csv

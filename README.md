@@ -88,6 +88,9 @@ The pilot was intentionally constrained to create a truthful, manageable first p
 ## ASRS Fatigue Benchmark
 The first benchmark model uses TF-IDF features from `narrative_clean` and a class-balanced logistic regression to predict the proxy label `weak_fatigue_label`. It uses 3-fold stratified cross-validation and writes compact validation artifacts for manual review.
 
+## ASRS Fatigue Feature Engineering
+The next ASRS feature pass turns `narrative_clean` into a small, transparent feature table with explicit fatigue counts, rest/sleep/duty context, hypothetical wording guards, and operational-noise counts. The output is keyed by `report_id` and preserves `weak_fatigue_label` so the second benchmark can be built without re-deriving the proxy target.
+
 ## Key Caveats
 - This is a **public-data-based, proxy-driven** project.
 - It does **not** represent internal airline operational telemetry.
@@ -104,8 +107,10 @@ source .venv/bin/activate
 python -m src.transform.build_trusted_layer
 python -m src.features.build_analytics_marts
 python -m src.features.build_asrs_nlp_baseline
+python -m src.features.build_asrs_fatigue_features
 python -m src.models.train_asrs_fatigue_benchmark
 ```
 
 That baseline writes `data/analytics/asrs_nlp_enriched.csv`.
 The benchmark writes `data/analytics/asrs_fatigue_model_summary.json` and `data/analytics/asrs_fatigue_predictions.csv`.
+The feature-engineering step writes `data/analytics/asrs_fatigue_features.csv`.

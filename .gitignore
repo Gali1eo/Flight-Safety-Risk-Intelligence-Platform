@@ -29,3 +29,5 @@ tableau/
 *.twb
 *.twbx
 *.twbr
+
+/private_notes/
