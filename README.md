@@ -1,18 +1,18 @@
 # Flight Safety Risk Intelligence Platform
 
-## Project Goal
-Build a portfolio-grade flight safety analytics platform aligned to a Flight Safety Data Science internship using only public and synthetic data. The project analyzes operational trends, voluntary safety-report signals, investigation patterns, and fatigue-related human-factor themes through a raw → trusted → analytics pipeline and Tableau dashboards.
+## Overview
+Flight Safety Risk Intelligence Platform is an end-to-end aviation analytics project built with public and synthetic data. It combines operational disruption data, voluntary safety reports, investigation context, and fatigue-related narrative analysis through a raw → trusted → analytics pipeline and Tableau dashboards.
 
-## Public-Data / Proxy Disclaimer
+## Public Data and Proxy Scope
 This project does **not** use confidential airline FOQA, ASAP, or internal Safety Management System data.
 
 Instead, it uses clearly labeled public or synthetic proxies:
-- **BTS On-Time / Delay** as an operational / FOQA-style proxy
-- **NASA ASRS** as a voluntary safety-report / fatigue / human-factors proxy
+- **BTS On-Time / Delay** as an operational context proxy
+- **NASA ASRS** as a voluntary safety-report and human-factors proxy
 - **NTSB aviation investigation data** as investigation context
-- **Synthetic safety-culture data** as a safety-culture proxy for the current pilot phase
+- **Synthetic safety-culture data** as a clearly labeled proxy for the pilot phase
 
-All cross-source integration is aggregate-only and interview-defensible.
+All cross-source integration is aggregate-only and explicitly framed as proxy-based.
 
 ## Architecture
 The platform follows an AWS-style layered design:
@@ -51,8 +51,7 @@ What it shows:
 - high-level KPI view for the pilot
 - airport-level operational concentration
 
-Why it matters:
-This dashboard gives an interview-ready executive view of how public operational and safety proxies can be integrated into a monthly flight safety monitoring story.
+Why it matters: This dashboard provides a high-level view of how public operational and safety proxy signals can be combined into a monthly flight safety monitoring story.
 
 ## Dashboard 2: Investigation Trends
 ![Dashboard 2](docs/dashboard_exports/dashboard_2_investigation_trends.png)
@@ -63,8 +62,7 @@ What it shows:
 - severity mix
 - investigation trend context
 
-Why it matters:
-This dashboard demonstrates how public investigation data can be used to add external safety-event context without claiming internal airline monitoring access.
+Why it matters: This dashboard adds external investigation context and severity patterns to the broader safety analytics story.
 
 ## Dashboard 3: Fatigue Theme Trends
 ![Dashboard 3](docs/dashboard_exports/dashboard_3_fatigue_theme_trends.png)
@@ -75,15 +73,12 @@ What it shows:
 - report concentration by carrier/theme grouping
 - Jan–Feb 2025 trend movement
 
-Why it matters:
-This dashboard highlights how voluntary public safety reports can be used as a defensible fatigue and human-factors proxy.
+Why it matters: This dashboard shows how voluntary public safety-report narratives can be analyzed for fatigue-related and human-factor signal patterns.
 
-## Current Pilot Scope
-This public-data pilot currently covers:
-- **January 2025**
-- **February 2025**
+## Current Release Scope
+The current public release covers January 2025 and February 2025.
 
-The pilot was intentionally constrained to create a truthful, manageable first production-style portfolio version before expanding the historical window.
+This release is intentionally scoped to a focused pilot window so the ingestion pipeline, analytics outputs, dashboards, NLP baseline, and fatigue benchmark workflow remain clear, reproducible, and easy to review.
 
 ## ASRS Fatigue Benchmark
 The first benchmark model uses TF-IDF features from `narrative_clean` and a class-balanced logistic regression to predict the proxy label `weak_fatigue_label`. It uses 3-fold stratified cross-validation and writes compact validation artifacts for manual review.
