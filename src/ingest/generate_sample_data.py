@@ -1,4 +1,4 @@
-"""Generate small synthetic sample datasets for local end-to-end testing."""
+"""Generates a small synthetic sample datasets for local end-to-end testing."""
 
 from __future__ import annotations
 
