@@ -1,6 +1,6 @@
 """Transparent ASRS fatigue feature engineering for the second benchmark.
 
-This module builds a small, interview-defensible feature table from the
+This module builds a small feature table from the
 rule-enriched ASRS pilot output. It keeps the target proxy label available
 for modeling convenience while adding only narrative-derived features:
 text length, explicit fatigue language, rest/sleep/duty context, hypothetical
