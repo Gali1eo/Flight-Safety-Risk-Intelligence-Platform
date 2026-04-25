@@ -1,6 +1,6 @@
 """First ML benchmark for ASRS fatigue signal detection.
 
-This benchmark is intentionally lightweight and interview-defensible:
+This benchmark is intentionally lightweight:
 TF-IDF features from `narrative_clean` feed a class-balanced logistic
 regression model evaluated with 3-fold stratified cross-validation.
 The target is the proxy label `weak_fatigue_label`, not ground truth.
